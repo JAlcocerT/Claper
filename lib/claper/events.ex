@@ -398,7 +398,7 @@ defmodule Claper.Events do
 
            attrs =
              Map.from_struct(original_event)
-             |> Map.drop([:id, :inserted_at, :updated_at, :presentation_file])
+             |> Map.drop([:id, :inserted_at, :updated_at, :presentation_file, :expired_at])
              |> Map.put(:leaders, [])
              |> Map.put(:code, "#{new_code}")
              |> Map.put(:name, "#{original_event.name} (Copy)")
@@ -428,7 +428,7 @@ defmodule Claper.Events do
              |> Map.drop([:id, :inserted_at, :updated_at])
              |> Map.put(:presentation_file_id, new_presentation_file.id)
              |> Map.put(:position, 0)
-             |> Map.put(:banned, nil)
+             |> Map.put(:banned, [])
 
            Claper.Presentations.create_presentation_state(attrs)
          end)

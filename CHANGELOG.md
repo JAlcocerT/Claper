@@ -1,3 +1,20 @@
+## v2.2.0
+
+### Features
+
+- Add duplicate feature on finished events
+- Add italian translation (thanks to @loviuz and @albanobattistella)
+
+### Fixes and improvements
+
+- Improve performance of global reactions
+- Change QR Code background color to white
+- Improve auto scroll of messages on the manager
+- Fix pinning of questions
+- Fix name picker being empty during a reconnect
+- Change wording for more options dropdown and access
+- Fix dropdown position to be on the front of other elements
+
 ## v2.1.1
 
 ### Fixes and improvements
@@ -8,6 +25,7 @@
 - Fix translations for current interactions
 - Improve poll results UI
 - Optimize resource usage of the manager when attendees join the event
+- Fix duplicate event being inaccesible
 
 ## v2.1.0
 
