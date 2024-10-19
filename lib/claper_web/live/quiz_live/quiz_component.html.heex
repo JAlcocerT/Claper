@@ -19,88 +19,106 @@
       />
     </div>
 
-    <%= inputs_for f, :quiz_questions, fn q -> %>
-      <div class={[
-        "mb-8 p-4 border rounded-md",
-        if(Ecto.Changeset.get_field(@changeset, :title) == nil, do: "opacity-50 pointer-events-none")
-      ]}>
-        <div class="flex gap-x-3 mt-3 items-center justify-start">
-          <ClaperWeb.Component.Input.text
-            form={q}
-            labelClass={if @dark, do: "text-white"}
-            fieldClass={if @dark, do: "bg-gray-700 text-white"}
-            key={:content}
-            name={gettext("Question")}
-            autofocus="true"
-            required="true"
-          />
-        </div>
+    <div class="rounded-md bg-white p-4">
+      <div class="w-full bg-gray-400 text-gray-800 h-12 text-sm flex items-center">
+        <%= for i <- 0..(Ecto.Changeset.get_field(@changeset, :quiz_questions) |> length()) - 1 do %>
+          <button
+            type="button"
+            phx-click="set_current_quiz_question_index"
+            phx-value-index={i}
+            phx-target={@myself}
+            class={[
+              "p-2",
+              if(@current_quiz_question_index == i, do: "bg-gray-500 text-white")
+            ]}
+          >
+            <%= i %>
+          </button>
+        <% end %>
+        <button
+          type="button"
+          phx-click="add_quiz_question"
+          phx-target={@myself}
+        >
+          <%= gettext("Add Question") %>
+        </button>
+      </div>
 
-        <%= inputs_for q, :quiz_question_opts, fn o -> %>
-          <div class="ml-4 mt-2">
+      <%= inputs_for f, :quiz_questions, fn q -> %>
+        <div class={[
+          "mb-8 p-4 border rounded-md",
+          if(Ecto.Changeset.get_field(@changeset, :title) == nil,
+            do: "opacity-50 pointer-events-none",
+            else: ""
+          ),
+          if(@current_quiz_question_index != q.index, do: "hidden", else: "")
+        ]}>
+          <div class="flex gap-x-3 mt-3 items-center justify-start">
             <ClaperWeb.Component.Input.text
-              form={o}
+              form={q}
               labelClass={if @dark, do: "text-white"}
               fieldClass={if @dark, do: "bg-gray-700 text-white"}
               key={:content}
-              name={gettext("Option %{index}", index: o.index + 1)}
+              name={gettext("Question")}
+              autofocus="true"
               required="true"
             />
-            <%= checkbox(o, :is_correct, class: "mr-2") %>
-            <%= label(o, :is_correct, gettext("Correct answer"),
-              class: if(@dark, do: "text-white")
-            ) %>
-
-            <%= if o.index > 1 do %>
-              <button
-                type="button"
-                phx-click="remove_quiz_question_opt"
-                phx-value-question_index={q.index}
-                phx-value-opt_index={o.index}
-                phx-target={@myself}
-                class="mt-2 ml-2 px-3 py-1 text-sm rounded-md bg-red-500 hover:bg-red-600 text-white transition"
-              >
-                <%= gettext("Remove Option") %>
-              </button>
-            <% end %>
           </div>
-        <% end %>
 
-        <button
-          type="button"
-          phx-click="add_quiz_question_opt"
-          phx-value-question_index={q.index}
-          phx-target={@myself}
-          class="mt-2 px-3 py-1 text-sm rounded-md bg-secondary-500 hover:bg-secondary-600 text-white transition"
-        >
-          <%= gettext("Add Option") %>
-        </button>
+          <%= inputs_for q, :quiz_question_opts, fn o -> %>
+            <div class="ml-4 mt-2">
+              <ClaperWeb.Component.Input.text
+                form={o}
+                labelClass={if @dark, do: "text-white"}
+                fieldClass={if @dark, do: "bg-gray-700 text-white"}
+                key={:content}
+                name={gettext("Option %{index}", index: o.index + 1)}
+                required="true"
+              />
+              <%= checkbox(o, :is_correct, class: "mr-2") %>
+              <%= label(o, :is_correct, gettext("Correct answer"),
+                class: if(@dark, do: "text-white")
+              ) %>
 
-        <%= if q.index > 0 do %>
+              <%= if o.index > 1 do %>
+                <button
+                  type="button"
+                  phx-click="remove_quiz_question_opt"
+                  phx-value-question_index={q.index}
+                  phx-value-opt_index={o.index}
+                  phx-target={@myself}
+                  class="mt-2 ml-2 px-3 py-1 text-sm rounded-md bg-red-500 hover:bg-red-600 text-white transition"
+                >
+                  <%= gettext("Remove Option") %>
+                </button>
+              <% end %>
+            </div>
+          <% end %>
+
           <button
             type="button"
-            phx-click="remove_quiz_question"
-            phx-value-index={q.index}
+            phx-click="add_quiz_question_opt"
+            phx-value-question_index={q.index}
             phx-target={@myself}
-            class="mt-2 ml-2 px-3 py-1 text-sm rounded-md bg-red-500 hover:bg-red-600 text-white transition"
+            class="mt-2 px-3 py-1 text-sm rounded-md bg-secondary-500 hover:bg-secondary-600 text-white transition"
           >
-            <%= gettext("Remove Question") %>
+            <%= gettext("Add Option") %>
           </button>
-        <% end %>
-      </div>
-    <% end %>
 
-    <button
-      type="button"
-      phx-click="add_quiz_question"
-      phx-target={@myself}
-      class={[
-        "mb-4 px-4 py-2 rounded-md bg-primary-500 hover:bg-primary-600 text-white transition",
-        if(Ecto.Changeset.get_field(@changeset, :title) == nil, do: "opacity-50 pointer-events-none")
-      ]}
-    >
-      <%= gettext("Add Question") %>
-    </button>
+          <%= if q.index > 0 do %>
+            <button
+              type="button"
+              phx-click="remove_quiz_question"
+              phx-value-index={q.index}
+              phx-target={@myself}
+              class="mt-2 ml-2 px-3 py-1 text-sm rounded-md bg-red-500 hover:bg-red-600 text-white transition"
+            >
+              <%= gettext("Remove Question") %>
+            </button>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
 
     <div class="flex space-x-3">
       <button

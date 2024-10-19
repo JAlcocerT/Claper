@@ -12,7 +12,9 @@ defmodule ClaperWeb.QuizLive.QuizComponent do
      socket
      |> assign(assigns)
      |> assign_new(:dark, fn -> false end)
-     |> assign(:changeset, changeset)}
+     |> assign(:changeset, changeset)
+     |> assign(:current_quiz_question_index, 0)
+    }
   end
 
   @impl true
@@ -39,21 +41,30 @@ defmodule ClaperWeb.QuizLive.QuizComponent do
   end
 
   @impl true
-  def handle_event("add_quiz_question", _params, %{assigns: %{changeset: changeset}} = socket) do
-    {:noreply, assign(socket, :changeset, changeset |> Quizzes.add_quiz_question())}
+  def handle_event("add_quiz_question", _params, %{assigns: %{changeset: changeset, current_quiz_question_index: current_quiz_question_index}} = socket) do
+    {:noreply, socket |> assign(:changeset, changeset |> Quizzes.add_quiz_question()) |> assign(:current_quiz_question_index, current_quiz_question_index + 1)}
   end
 
   @impl true
-  def handle_event("remove_quiz_question", %{"index" => index}, %{assigns: %{changeset: changeset}} = socket) do
-    IO.inspect(changeset, label: "changeset")
+  def handle_event("remove_quiz_question", %{"index" => index}, %{assigns: %{changeset: changeset, current_quiz_question_index: current_quiz_question_index}} = socket) do
     index = String.to_integer(index)
-    {:noreply, assign(socket, :changeset, changeset |> Quizzes.remove_quiz_question(index))}
+
+    {:noreply, socket
+    |> assign(:changeset, changeset |> Quizzes.remove_quiz_question(index))
+    |> assign(:current_quiz_question_index, current_quiz_question_index - 1)
+  }
   end
 
   @impl true
   def handle_event("add_quiz_question_opt", %{"question_index" => index}, %{assigns: %{changeset: changeset}} = socket) do
     index = String.to_integer(index)
     {:noreply, assign(socket, :changeset, changeset |> Quizzes.add_quiz_question_opt(index))}
+  end
+
+  @impl true
+  def handle_event("set_current_quiz_question_index", %{"index" => index}, socket) do
+    index = String.to_integer(index)
+    {:noreply, assign(socket, :current_quiz_question_index, index)}
   end
 
   @impl true
