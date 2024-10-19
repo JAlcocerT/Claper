@@ -784,6 +784,7 @@ defmodule ClaperWeb.EventLive.Manage do
     socket
     |> assign(:create, "quiz")
     |> assign(:quiz, %Quizzes.Quiz{
+      presentation_file_id: socket.assigns.event.presentation_file.id,
       quiz_questions: [
         %Quizzes.QuizQuestion{
           id: 0,

@@ -34,10 +34,10 @@ defmodule Claper.Quizzes do
       [%Quiz{}, ...]
 
   """
-  def list_polls_at_position(presentation_file_id, position) do
-    from(p in Quiz,
-      where: p.presentation_file_id == ^presentation_file_id and p.position == ^position,
-      order_by: [asc: p.id]
+  def list_quizzes_at_position(presentation_file_id, position) do
+    from(q in Quiz,
+      where: q.presentation_file_id == ^presentation_file_id and q.position == ^position,
+      order_by: [asc: q.id]
     )
     |> Repo.all()
     |> Repo.preload([:quiz_questions, quiz_questions: :quiz_question_opts])
@@ -162,43 +162,77 @@ defmodule Claper.Quizzes do
   end
 
   def add_quiz_question(changeset) do
-    changeset
-    |> Ecto.Changeset.put_assoc(:quiz_questions, Ecto.Changeset.get_field(changeset, :quiz_questions) ++ [%QuizQuestion{
+    existing_questions = Ecto.Changeset.get_change(changeset, :quiz_questions, [])
+
+    new_question = %QuizQuestion{
       quiz_question_opts: [
         %QuizQuestionOpt{},
         %QuizQuestionOpt{}
       ]
-    }])
+    }
+
+    new_question_changeset = Ecto.Changeset.change(new_question)
+
+    updated_questions = existing_questions ++ [new_question_changeset]
+
+    Ecto.Changeset.put_change(changeset, :quiz_questions, updated_questions)
   end
 
-  def remove_quiz_question(changeset, quiz_question) do
+  def remove_quiz_question(changeset, index) do
     changeset
-    |> Ecto.Changeset.put_assoc(
-      :quiz_questions,
-      Ecto.Changeset.get_field(changeset, :quiz_questions) -- [quiz_question]
-    )
+    |> Ecto.Changeset.update_change(:quiz_questions, fn questions ->
+      List.delete_at(questions, index)
+    end)
   end
 
   @doc """
   Add an empty quiz opt to a quiz changeset.
   """
   def add_quiz_question_opt(changeset, question_index) do
-    changeset
-    |> Ecto.Changeset.put_assoc(:quiz_questions, Ecto.Changeset.get_field(changeset, :quiz_questions) |>  List.update_at(question_index, fn question ->
-      Ecto.Changeset.put_assoc(question, :quiz_question_opts,
-        (question.quiz_question_opts || []) ++ [%QuizQuestionOpt{}])
-    end))
+    update_quiz_question_at_index(changeset, question_index, fn question_changeset ->
+      existing_opts = Ecto.Changeset.get_change(question_changeset, :quiz_question_opts, [])
+      new_opt = %QuizQuestionOpt{}
+      new_opt_changeset = Ecto.Changeset.change(new_opt)
+      updated_opts = existing_opts ++ [new_opt_changeset]
+      Ecto.Changeset.put_change(question_changeset, :quiz_question_opts, updated_opts)
+    end)
   end
 
   @doc """
   Remove a quiz question opt from a quiz question changeset.
   """
-  def remove_quiz_question_opt(changeset, quiz_question_opt) do
-    changeset
-    |> Ecto.Changeset.put_assoc(
-      :quiz_question_opts,
-      Ecto.Changeset.get_field(changeset, :quiz_question_opts) -- [quiz_question_opt]
+  def remove_quiz_question_opt(changeset, question_index, opt_index) do
+    update_quiz_question_at_index(changeset, question_index, fn question_changeset ->
+      existing_opts = Ecto.Changeset.get_change(question_changeset, :quiz_question_opts, [])
+      updated_opts = List.delete_at(existing_opts, opt_index)
+      Ecto.Changeset.put_change(question_changeset, :quiz_question_opts, updated_opts)
+    end)
+  end
+
+    # Helper function to update a specific quiz question
+  defp update_quiz_question_at_index(changeset, index, update_fn) do
+    Ecto.Changeset.update_change(changeset, :quiz_questions, fn questions ->
+      List.update_at(questions, index, update_fn)
+    end)
+  end
+
+  def disable_all(presentation_file_id, position) do
+    from(q in Quiz,
+      where: q.presentation_file_id == ^presentation_file_id and q.position == ^position
     )
+    |> Repo.update_all(set: [enabled: false])
+  end
+
+  def set_enabled(id) do
+    get_quiz!(id)
+    |> Ecto.Changeset.change(enabled: true)
+    |> Repo.update()
+  end
+
+  def set_disabled(id) do
+    get_quiz!(id)
+    |> Ecto.Changeset.change(enabled: false)
+    |> Repo.update()
   end
 
   defp broadcast({:error, _reason} = error, _quiz), do: error

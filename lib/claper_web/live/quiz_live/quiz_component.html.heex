@@ -20,7 +20,10 @@
     </div>
 
     <%= inputs_for f, :quiz_questions, fn q -> %>
-      <div class="mb-8 p-4 border rounded-md">
+      <div class={[
+        "mb-8 p-4 border rounded-md",
+        if(Ecto.Changeset.get_field(@changeset, :title) == nil, do: "opacity-50 pointer-events-none")
+      ]}>
         <div class="flex gap-x-3 mt-3 items-center justify-start">
           <ClaperWeb.Component.Input.text
             form={q}
@@ -44,7 +47,22 @@
               required="true"
             />
             <%= checkbox(o, :is_correct, class: "mr-2") %>
-            <%= label(o, :is_correct, gettext("Correct answer"), class: if(@dark, do: "text-white")) %>
+            <%= label(o, :is_correct, gettext("Correct answer"),
+              class: if(@dark, do: "text-white")
+            ) %>
+
+            <%= if o.index > 1 do %>
+              <button
+                type="button"
+                phx-click="remove_quiz_question_opt"
+                phx-value-question_index={q.index}
+                phx-value-opt_index={o.index}
+                phx-target={@myself}
+                class="mt-2 ml-2 px-3 py-1 text-sm rounded-md bg-red-500 hover:bg-red-600 text-white transition"
+              >
+                <%= gettext("Remove Option") %>
+              </button>
+            <% end %>
           </div>
         <% end %>
 
@@ -76,7 +94,10 @@
       type="button"
       phx-click="add_quiz_question"
       phx-target={@myself}
-      class="mb-4 px-4 py-2 rounded-md bg-primary-500 hover:bg-primary-600 text-white transition"
+      class={[
+        "mb-4 px-4 py-2 rounded-md bg-primary-500 hover:bg-primary-600 text-white transition",
+        if(Ecto.Changeset.get_field(@changeset, :title) == nil, do: "opacity-50 pointer-events-none")
+      ]}
     >
       <%= gettext("Add Question") %>
     </button>

@@ -907,6 +907,9 @@
                                 %Claper.Embeds.Embed{} ->
                                   ~p"/e/#{@event.code}/manage/edit/embed/#{interaction.id}"
 
+                                %Claper.Quizzes.Quiz{} ->
+                                  ~p"/e/#{@event.code}/manage/edit/quiz/#{interaction.id}"
+
                                 _ ->
                                   "#"
                               end
@@ -1058,6 +1061,7 @@
                               %Claper.Polls.Poll{} -> "poll-set-inactive"
                               %Claper.Forms.Form{} -> "form-set-inactive"
                               %Claper.Embeds.Embed{} -> "embed-set-inactive"
+                              %Claper.Quizzes.Quiz{} -> "quiz-set-inactive"
                               _ -> ""
                             end
                           }
@@ -1102,6 +1106,7 @@
                             %Claper.Polls.Poll{} -> "poll-set-active"
                             %Claper.Forms.Form{} -> "form-set-active"
                             %Claper.Embeds.Embed{} -> "embed-set-active"
+                            %Claper.Quizzes.Quiz{} -> "quiz-set-active"
                             _ -> ""
                           end
                         }

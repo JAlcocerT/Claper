@@ -15,8 +15,8 @@ defmodule Claper.Quizzes.QuizQuestion do
   @doc false
   def changeset(quiz_question, attrs) do
     quiz_question
-    |> cast(attrs, [:content, :type, :quiz_id])
-    |> validate_required([:content, :type, :quiz_id])
-    |> cast_assoc(:quiz_question_opts)
+    |> cast(attrs, [:content, :type])
+    |> validate_required([:content, :type])
+    |> cast_assoc(:quiz_question_opts, required: true)
   end
 end

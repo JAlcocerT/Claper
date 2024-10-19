@@ -44,33 +44,27 @@ defmodule ClaperWeb.QuizLive.QuizComponent do
   end
 
   @impl true
+  def handle_event("remove_quiz_question", %{"index" => index}, %{assigns: %{changeset: changeset}} = socket) do
+    IO.inspect(changeset, label: "changeset")
+    index = String.to_integer(index)
+    {:noreply, assign(socket, :changeset, changeset |> Quizzes.remove_quiz_question(index))}
+  end
+
+  @impl true
   def handle_event("add_quiz_question_opt", %{"question_index" => index}, %{assigns: %{changeset: changeset}} = socket) do
     index = String.to_integer(index)
     {:noreply, assign(socket, :changeset, changeset |> Quizzes.add_quiz_question_opt(index))}
   end
 
   @impl true
-  def handle_event("remove_quiz_question", %{"index" => index}, socket) do
-    index = String.to_integer(index)
-    changeset =
-      socket.assigns.changeset
-      |> Ecto.Changeset.update_change(:quiz_questions, fn questions ->
-        List.delete_at(questions, index)
-      end)
-
-    {:noreply, assign(socket, :changeset, changeset)}
-  end
-
-  @impl true
-  def handle_event("remove_opt",
-        %{"opt" => opt} = _params,
+  def handle_event("remove_quiz_question_opt",
+        %{"question_index" => question_index, "opt_index" => opt_index} = _params,
         %{assigns: %{changeset: changeset}} = socket
       ) do
-    {opt, _} = Integer.parse(opt)
+    question_index = String.to_integer(question_index)
+    opt_index = String.to_integer(opt_index)
 
-    quiz_opt = Enum.at(Ecto.Changeset.get_field(changeset, :quiz_question_opts), opt)
-
-    {:noreply, assign(socket, :changeset, changeset |> Quizzes.remove_quiz_opt(quiz_opt))}
+    {:noreply, assign(socket, :changeset, changeset |> Quizzes.remove_quiz_question_opt(question_index, opt_index))}
   end
 
   defp save_quiz(socket, :edit, quiz_params) do
@@ -103,6 +97,7 @@ defmodule ClaperWeb.QuizLive.QuizComponent do
          |> push_navigate(to: socket.assigns.return_to)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
+        IO.inspect(changeset, label: "changeset")
         {:noreply, assign(socket, changeset: changeset)}
     end
   end

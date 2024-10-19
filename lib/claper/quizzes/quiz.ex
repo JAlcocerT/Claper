@@ -19,6 +19,6 @@ defmodule Claper.Quizzes.Quiz do
     quiz
     |> cast(attrs, [:title, :position, :presentation_file_id, :enabled, :show_results])
     |> validate_required([:title, :position, :presentation_file_id])
-    |> cast_assoc(:quiz_questions)
+    |> cast_assoc(:quiz_questions, required: true)
   end
 end
