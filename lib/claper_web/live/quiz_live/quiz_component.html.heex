@@ -47,10 +47,6 @@
       <%= inputs_for f, :quiz_questions, fn q -> %>
         <div class={[
           "mb-8 p-4 border rounded-md",
-          if(Ecto.Changeset.get_field(@changeset, :title) == nil,
-            do: "opacity-50 pointer-events-none",
-            else: ""
-          ),
           if(@current_quiz_question_index != q.index, do: "hidden", else: "")
         ]}>
           <div class="flex gap-x-3 mt-3 items-center justify-start">
@@ -81,16 +77,21 @@
               ) %>
 
               <%= if o.index > 1 do %>
-                <button
-                  type="button"
-                  phx-click="remove_quiz_question_opt"
-                  phx-value-question_index={q.index}
-                  phx-value-opt_index={o.index}
-                  phx-target={@myself}
-                  class="mt-2 ml-2 px-3 py-1 text-sm rounded-md bg-red-500 hover:bg-red-600 text-white transition"
-                >
-                  <%= gettext("Remove Option") %>
-                </button>
+                <label>
+                  <div
+                    class="mt-2 ml-2 px-3 py-1 text-sm rounded-md bg-red-500 hover:bg-red-600 text-white transition"
+                  >
+                    <%= gettext("Remove Option") %>
+                  </div>
+                  <input
+                    type="checkbox"
+                    name={
+                      "quiz[quiz_questions][#{q.index}][quiz_question_opts_delete][]"
+                    }
+                    value={o.index}
+                    class="hidden"
+                  />
+                </label>
               <% end %>
             </div>
           <% end %>
@@ -105,16 +106,21 @@
             <%= gettext("Add Option") %>
           </button>
 
-          <%= if q.index > 0 do %>
-            <button
-              type="button"
-              phx-click="remove_quiz_question"
-              phx-value-index={q.index}
-              phx-target={@myself}
+          <%= if Ecto.Changeset.get_field(@changeset, :quiz_questions) |> length() > 1 do %>
+            <label phx-click="remove_quiz_question" phx-target={@myself}>
+            <div
+
               class="mt-2 ml-2 px-3 py-1 text-sm rounded-md bg-red-500 hover:bg-red-600 text-white transition"
             >
               <%= gettext("Remove Question") %>
-            </button>
+            </div>
+            <input
+              type="checkbox"
+              name="quiz[quiz_questions_delete][]"
+              value={q.index}
+              class="hidden"
+            />
+            </label>
           <% end %>
         </div>
       <% end %>

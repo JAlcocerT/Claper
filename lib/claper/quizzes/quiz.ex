@@ -9,7 +9,7 @@ defmodule Claper.Quizzes.Quiz do
     field :show_results, :boolean, default: false
 
     belongs_to :presentation_file, Claper.Presentations.PresentationFile
-    has_many :quiz_questions, Claper.Quizzes.QuizQuestion
+    has_many :quiz_questions, Claper.Quizzes.QuizQuestion, preload_order: [asc: :id], on_replace: :delete
 
     timestamps()
   end
@@ -19,6 +19,8 @@ defmodule Claper.Quizzes.Quiz do
     quiz
     |> cast(attrs, [:title, :position, :presentation_file_id, :enabled, :show_results])
     |> validate_required([:title, :position, :presentation_file_id])
-    |> cast_assoc(:quiz_questions, required: true)
+    |> cast_assoc(:quiz_questions, required: true, with: &Claper.Quizzes.QuizQuestion.changeset/2,
+      sort_param: :quiz_questions_order,
+      drop_param: :quiz_questions_delete)
   end
 end

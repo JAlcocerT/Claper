@@ -162,7 +162,7 @@ defmodule Claper.Quizzes do
   end
 
   def add_quiz_question(changeset) do
-    existing_questions = Ecto.Changeset.get_change(changeset, :quiz_questions, [])
+    existing_questions = Ecto.Changeset.get_field(changeset, :quiz_questions, [])
 
     new_question = %QuizQuestion{
       quiz_question_opts: [
@@ -175,45 +175,28 @@ defmodule Claper.Quizzes do
 
     updated_questions = existing_questions ++ [new_question_changeset]
 
-    Ecto.Changeset.put_change(changeset, :quiz_questions, updated_questions)
-  end
-
-  def remove_quiz_question(changeset, index) do
-    changeset
-    |> Ecto.Changeset.update_change(:quiz_questions, fn questions ->
-      List.delete_at(questions, index)
-    end)
+    Ecto.Changeset.put_assoc(changeset, :quiz_questions, updated_questions)
   end
 
   @doc """
   Add an empty quiz opt to a quiz changeset.
   """
   def add_quiz_question_opt(changeset, question_index) do
-    update_quiz_question_at_index(changeset, question_index, fn question_changeset ->
-      existing_opts = Ecto.Changeset.get_change(question_changeset, :quiz_question_opts, [])
-      new_opt = %QuizQuestionOpt{}
-      new_opt_changeset = Ecto.Changeset.change(new_opt)
+    existing_questions = Ecto.Changeset.get_field(changeset, :quiz_questions, [])
+
+    new_opt = %QuizQuestionOpt{}
+    new_opt_changeset = Ecto.Changeset.change(new_opt)
+
+    updated_questions = List.update_at(existing_questions, question_index, fn question ->
+      question_changeset = Ecto.Changeset.change(question)
+
+      existing_opts = Ecto.Changeset.get_field(question_changeset, :quiz_question_opts, [])
       updated_opts = existing_opts ++ [new_opt_changeset]
+
       Ecto.Changeset.put_change(question_changeset, :quiz_question_opts, updated_opts)
     end)
-  end
 
-  @doc """
-  Remove a quiz question opt from a quiz question changeset.
-  """
-  def remove_quiz_question_opt(changeset, question_index, opt_index) do
-    update_quiz_question_at_index(changeset, question_index, fn question_changeset ->
-      existing_opts = Ecto.Changeset.get_change(question_changeset, :quiz_question_opts, [])
-      updated_opts = List.delete_at(existing_opts, opt_index)
-      Ecto.Changeset.put_change(question_changeset, :quiz_question_opts, updated_opts)
-    end)
-  end
-
-    # Helper function to update a specific quiz question
-  defp update_quiz_question_at_index(changeset, index, update_fn) do
-    Ecto.Changeset.update_change(changeset, :quiz_questions, fn questions ->
-      List.update_at(questions, index, update_fn)
-    end)
+    Ecto.Changeset.put_assoc(changeset, :quiz_questions, updated_questions)
   end
 
   def disable_all(presentation_file_id, position) do

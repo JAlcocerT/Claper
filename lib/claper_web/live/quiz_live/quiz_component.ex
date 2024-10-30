@@ -46,12 +46,9 @@ defmodule ClaperWeb.QuizLive.QuizComponent do
   end
 
   @impl true
-  def handle_event("remove_quiz_question", %{"index" => index}, %{assigns: %{changeset: changeset, current_quiz_question_index: current_quiz_question_index}} = socket) do
-    index = String.to_integer(index)
-
+  def handle_event("remove_quiz_question", _params, %{assigns: %{current_quiz_question_index: current_quiz_question_index}} = socket) do
     {:noreply, socket
-    |> assign(:changeset, changeset |> Quizzes.remove_quiz_question(index))
-    |> assign(:current_quiz_question_index, current_quiz_question_index - 1)
+    |> assign(:current_quiz_question_index, max(0, current_quiz_question_index - 1))
   }
   end
 
@@ -65,17 +62,6 @@ defmodule ClaperWeb.QuizLive.QuizComponent do
   def handle_event("set_current_quiz_question_index", %{"index" => index}, socket) do
     index = String.to_integer(index)
     {:noreply, assign(socket, :current_quiz_question_index, index)}
-  end
-
-  @impl true
-  def handle_event("remove_quiz_question_opt",
-        %{"question_index" => question_index, "opt_index" => opt_index} = _params,
-        %{assigns: %{changeset: changeset}} = socket
-      ) do
-    question_index = String.to_integer(question_index)
-    opt_index = String.to_integer(opt_index)
-
-    {:noreply, assign(socket, :changeset, changeset |> Quizzes.remove_quiz_question_opt(question_index, opt_index))}
   end
 
   defp save_quiz(socket, :edit, quiz_params) do
