@@ -42,7 +42,7 @@ defmodule ClaperWeb.QuizLive.QuizComponent do
 
   @impl true
   def handle_event("add_quiz_question", _params, %{assigns: %{changeset: changeset, current_quiz_question_index: current_quiz_question_index}} = socket) do
-    {:noreply, socket |> assign(:changeset, changeset |> Quizzes.add_quiz_question()) |> assign(:current_quiz_question_index, current_quiz_question_index + 1)}
+    {:noreply, socket |> assign(:changeset, changeset |> Quizzes.add_quiz_question()) |> assign(:current_quiz_question_index, length(Ecto.Changeset.get_field(changeset, :quiz_questions)))}
   end
 
   @impl true
