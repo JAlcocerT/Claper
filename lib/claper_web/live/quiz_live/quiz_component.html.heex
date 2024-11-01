@@ -67,7 +67,7 @@
 
           <div class="mt-5">
             <%= inputs_for q, :quiz_question_opts, fn o -> %>
-              <div class="mt-2">
+              <div class="mt-2" id={"answer-#{o.index}"}>
                 <div class="flex items-center gap-x-2">
                   <div class="flex-1">
                     <ClaperWeb.Component.Input.text
@@ -80,9 +80,9 @@
                     />
                   </div>
                   <div>
-                    <%= label(class: "mt-6 cursor-pointer flex items-center text-white rounded-md px-2.5 py-2.5 h-full #{if input_value(o, :is_correct), do: "bg-green-500", else: "bg-red-500"}") do %>
+                    <%= label(class: "mt-6 cursor-pointer flex items-center text-white rounded-md px-2.5 py-2.5 h-full #{if (o.source.changes[:is_correct] != nil && o.source.changes[:is_correct]) || (!Map.has_key?(o.source.changes, :is_correct) && o.source.data.is_correct), do: "bg-green-500", else: "bg-red-500"}") do %>
                       <%= checkbox(o, :is_correct, class: "hidden") %>
-                      <%= if input_value(o, :is_correct) do %>
+                      <%= if (o.source.changes[:is_correct] != nil && o.source.changes[:is_correct]) || (!Map.has_key?(o.source.changes, :is_correct) && o.source.data.is_correct) do %>
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"

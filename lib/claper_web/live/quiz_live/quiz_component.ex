@@ -1,5 +1,4 @@
 defmodule ClaperWeb.QuizLive.QuizComponent do
-  alias Claper.Quizzes.QuizQuestionOpt
   use ClaperWeb, :live_component
 
   alias Claper.Quizzes
