@@ -43,8 +43,6 @@ defmodule Claper.Quizzes do
     |> Repo.preload([:quiz_questions, quiz_questions: :quiz_question_opts])
   end
 
-
-
   @doc """
   Gets a single quiz by ID.
 
@@ -178,6 +176,82 @@ defmodule Claper.Quizzes do
     Ecto.Changeset.put_assoc(changeset, :quiz_questions, updated_questions)
   end
 
+  def submit_quiz(user_id, event_uuid, quiz_opts, quiz_id)
+      when is_number(user_id) and is_list(quiz_opts) do
+    case Enum.reduce(quiz_opts, Ecto.Multi.new(), fn opt, multi ->
+           Ecto.Multi.update(
+             multi,
+             {:update_quiz_opt, opt.id},
+             QuizQuestionOpt.changeset(opt, %{"response_count" => opt.response_count + 1})
+           )
+           |> Ecto.Multi.insert(
+             {:insert_quiz_response, opt.id},
+             QuizResponse.changeset(%QuizResponse{}, %{
+               user_id: user_id,
+               quiz_question_opt_id: opt.id,
+               quiz_question_id: opt.quiz_question_id,
+               quiz_id: quiz_id
+             })
+           )
+         end)
+         |> Repo.transaction() do
+      {:ok, _} ->
+        quiz = get_quiz!(quiz_id)
+        broadcast({:ok, quiz, event_uuid}, :quiz_updated)
+    end
+  end
+
+  def submit_quiz(attendee_identifier, event_uuid, quiz_opts, quiz_id)
+      when is_number(attendee_identifier) and is_list(quiz_opts) do
+    case Enum.reduce(quiz_opts, Ecto.Multi.new(), fn opt, multi ->
+           Ecto.Multi.update(
+             multi,
+             {:update_quiz_opt, opt.id},
+             QuizQuestionOpt.changeset(opt, %{"response_count" => opt.response_count + 1})
+           )
+           |> Ecto.Multi.insert(
+             {:insert_quiz_response, opt.id},
+             QuizResponse.changeset(%QuizResponse{}, %{
+               attendee_identifier: attendee_identifier,
+               quiz_question_opt_id: opt.id,
+               quiz_question_id: opt.quiz_question_id,
+               quiz_id: quiz_id
+             })
+           )
+         end)
+         |> Repo.transaction() do
+      {:ok, _} ->
+        quiz = get_quiz!(quiz_id)
+        broadcast({:ok, quiz, event_uuid}, :quiz_updated)
+    end
+  end
+
+  @doc """
+  Gets a all quiz_response.
+
+
+  ## Examples
+
+      iex> get_quiz_responses!(321, 123)
+      [%QuizResponse{}]
+
+  """
+  def get_quiz_responses(user_id, quiz_id) when is_number(user_id) do
+    from(p in QuizResponse,
+      where: p.quiz_id == ^quiz_id and p.user_id == ^user_id,
+      order_by: [asc: p.id]
+    )
+    |> Repo.all()
+  end
+
+  def get_quiz_responses(attendee_identifier, quiz_id) do
+    from(p in QuizResponse,
+      where: p.quiz_id == ^quiz_id and p.attendee_identifier == ^attendee_identifier,
+      order_by: [asc: p.id]
+    )
+    |> Repo.all()
+  end
+
   @doc """
   Add an empty quiz opt to a quiz changeset.
   """
@@ -187,14 +261,15 @@ defmodule Claper.Quizzes do
     new_opt = %QuizQuestionOpt{}
     new_opt_changeset = Ecto.Changeset.change(new_opt)
 
-    updated_questions = List.update_at(existing_questions, question_index, fn question ->
-      question_changeset = Ecto.Changeset.change(question)
+    updated_questions =
+      List.update_at(existing_questions, question_index, fn question ->
+        question_changeset = Ecto.Changeset.change(question)
 
-      existing_opts = Ecto.Changeset.get_field(question_changeset, :quiz_question_opts, [])
-      updated_opts = existing_opts ++ [new_opt_changeset]
+        existing_opts = Ecto.Changeset.get_field(question_changeset, :quiz_question_opts, [])
+        updated_opts = existing_opts ++ [new_opt_changeset]
 
-      Ecto.Changeset.put_change(question_changeset, :quiz_question_opts, updated_opts)
-    end)
+        Ecto.Changeset.put_change(question_changeset, :quiz_question_opts, updated_opts)
+      end)
 
     Ecto.Changeset.put_assoc(changeset, :quiz_questions, updated_questions)
   end

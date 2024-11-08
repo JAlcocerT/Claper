@@ -2,7 +2,7 @@ defmodule ClaperWeb.EventLive.Show do
   alias Claper.Interactions
   use ClaperWeb, :live_view
 
-  alias Claper.{Posts, Polls, Forms}
+  alias Claper.{Posts, Polls, Forms, Quizzes}
   alias ClaperWeb.Presence
 
   on_mount(ClaperWeb.AttendeeLiveAuth)
@@ -81,7 +81,8 @@ defmodule ClaperWeb.EventLive.Show do
       |> assign(:loved_posts, reacted_posts(socket, event.id, "❤️"))
       |> assign(:loled_posts, reacted_posts(socket, event.id, "😂"))
       |> assign(:selected_poll_opt, [])
-      |> assign(:poll_opt_saved, false)
+      |> assign(:selected_quiz_question_opts, [])
+      |> assign(:current_quiz_question_idx, 0)
       |> assign(:event, event)
       |> assign(:state, event.presentation_file.presentation_state)
       |> assign(:nickname, "")
@@ -570,6 +571,95 @@ defmodule ClaperWeb.EventLive.Show do
     end
   end
 
+  @impl true
+  def handle_event(
+        "next-question",
+        _params,
+        %{assigns: %{current_quiz_question_idx: current_quiz_question_idx}} = socket
+      ) do
+    {:noreply, socket |> assign(:current_quiz_question_idx, current_quiz_question_idx + 1)}
+  end
+
+  @impl true
+  def handle_event(
+        "prev-question",
+        _params,
+        %{assigns: %{current_quiz_question_idx: current_quiz_question_idx}} = socket
+      ) do
+    {:noreply, socket |> assign(:current_quiz_question_idx, current_quiz_question_idx - 1)}
+  end
+
+  @impl true
+  def handle_event(
+        "select-quiz-question-opt",
+        %{"opt" => opt},
+        socket
+      ) do
+    opt = Integer.parse(opt) |> elem(0)
+
+    current_quiz_question =
+      Enum.at(
+        socket.assigns.current_interaction.quiz_questions,
+        socket.assigns.current_quiz_question_idx
+      )
+
+    quiz_question_opt =
+      Enum.find(current_quiz_question.quiz_question_opts, fn x -> x.id == opt end)
+
+    if Enum.member?(socket.assigns.selected_quiz_question_opts, quiz_question_opt) do
+      {:noreply,
+       socket
+       |> assign(
+         :selected_quiz_question_opts,
+         Enum.filter(socket.assigns.selected_quiz_question_opts, fn x ->
+           x.id != quiz_question_opt.id
+         end)
+       )}
+    else
+      {:noreply,
+       socket
+       |> assign(:selected_quiz_question_opts, [
+         quiz_question_opt | socket.assigns.selected_quiz_question_opts
+       ])}
+    end
+  end
+
+  @impl true
+  def handle_event(
+        "submit-quiz",
+        _params,
+        %{assigns: %{current_user: current_user, selected_quiz_question_opts: opts}} = socket
+      )
+      when is_map(current_user) do
+    case Claper.Quizzes.submit_quiz(
+           current_user.id,
+           socket.assigns.event.uuid,
+           opts,
+           socket.assigns.current_interaction.id
+         ) do
+      {:ok, _quiz} ->
+        {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_event(
+        "submit-quiz",
+        _params,
+        %{assigns: %{attendee_identifier: attendee_identifier, selected_quiz_question_opts: opts}} =
+          socket
+      ) do
+    case Claper.Quizzes.submit_quiz(
+           attendee_identifier,
+           socket.assigns.event.uuid,
+           opts,
+           socket.assigns.current_interaction.id
+         ) do
+      {:ok, _quiz} ->
+        {:noreply, socket}
+    end
+  end
+
   def toggle_side_menu(js \\ %JS{}) do
     js
     |> JS.toggle(
@@ -671,6 +761,20 @@ defmodule ClaperWeb.EventLive.Show do
     socket |> assign(:current_form_submit, fs)
   end
 
+  defp get_current_quiz_reponses(%{assigns: %{current_user: current_user}} = socket, quiz_id)
+       when is_map(current_user) do
+    responses = Quizzes.get_quiz_responses(current_user.id, quiz_id)
+    socket |> assign(:current_quiz_responses, responses)
+  end
+
+  defp get_current_quiz_reponses(
+         %{assigns: %{attendee_identifier: attendee_identifier}} = socket,
+         quiz_id
+       ) do
+    responses = Quizzes.get_quiz_responses(attendee_identifier, quiz_id)
+    socket |> assign(:current_quiz_responses, responses)
+  end
+
   defp reacted_posts(
          %{assigns: %{current_user: current_user} = _assigns} = _socket,
          event_id,
@@ -715,6 +819,12 @@ defmodule ClaperWeb.EventLive.Show do
 
   defp load_current_interaction(socket, %Forms.Form{} = interaction, _same_interaction) do
     socket |> assign(:current_interaction, interaction) |> get_current_form_submit(interaction.id)
+  end
+
+  defp load_current_interaction(socket, %Quizzes.Quiz{} = interaction, _same_interaction) do
+    socket
+    |> assign(:current_interaction, interaction)
+    |> get_current_quiz_reponses(interaction.id)
   end
 
   defp load_current_interaction(socket, interaction, _same_interaction) do

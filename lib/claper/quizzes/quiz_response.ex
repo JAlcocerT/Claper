@@ -16,7 +16,13 @@ defmodule Claper.Quizzes.QuizResponse do
   @doc false
   def changeset(quiz_response, attrs) do
     quiz_response
-    |> cast(attrs, [:attendee_identifier, :quiz_id, :quiz_question_id, :quiz_question_opt_id, :user_id])
+    |> cast(attrs, [
+      :attendee_identifier,
+      :quiz_id,
+      :quiz_question_id,
+      :quiz_question_opt_id,
+      :user_id
+    ])
     |> validate_required([:quiz_id, :quiz_question_id, :quiz_question_opt_id])
   end
 end

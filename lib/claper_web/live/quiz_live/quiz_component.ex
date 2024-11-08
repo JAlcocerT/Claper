@@ -12,8 +12,7 @@ defmodule ClaperWeb.QuizLive.QuizComponent do
      |> assign(assigns)
      |> assign_new(:dark, fn -> false end)
      |> assign(:changeset, changeset)
-     |> assign(:current_quiz_question_index, 0)
-    }
+     |> assign(:current_quiz_question_index, 0)}
   end
 
   @impl true
@@ -40,19 +39,42 @@ defmodule ClaperWeb.QuizLive.QuizComponent do
   end
 
   @impl true
-  def handle_event("add_quiz_question", _params, %{assigns: %{changeset: changeset, current_quiz_question_index: current_quiz_question_index}} = socket) do
-    {:noreply, socket |> assign(:changeset, changeset |> Quizzes.add_quiz_question()) |> assign(:current_quiz_question_index, length(Ecto.Changeset.get_field(changeset, :quiz_questions)))}
+  def handle_event(
+        "add_quiz_question",
+        _params,
+        %{
+          assigns: %{
+            changeset: changeset,
+            current_quiz_question_index: current_quiz_question_index
+          }
+        } = socket
+      ) do
+    {:noreply,
+     socket
+     |> assign(:changeset, changeset |> Quizzes.add_quiz_question())
+     |> assign(
+       :current_quiz_question_index,
+       length(Ecto.Changeset.get_field(changeset, :quiz_questions))
+     )}
   end
 
   @impl true
-  def handle_event("remove_quiz_question", _params, %{assigns: %{current_quiz_question_index: current_quiz_question_index}} = socket) do
-    {:noreply, socket
-    |> assign(:current_quiz_question_index, max(0, current_quiz_question_index - 1))
-  }
+  def handle_event(
+        "remove_quiz_question",
+        _params,
+        %{assigns: %{current_quiz_question_index: current_quiz_question_index}} = socket
+      ) do
+    {:noreply,
+     socket
+     |> assign(:current_quiz_question_index, max(0, current_quiz_question_index - 1))}
   end
 
   @impl true
-  def handle_event("add_quiz_question_opt", %{"question_index" => index}, %{assigns: %{changeset: changeset}} = socket) do
+  def handle_event(
+        "add_quiz_question_opt",
+        %{"question_index" => index},
+        %{assigns: %{changeset: changeset}} = socket
+      ) do
     index = String.to_integer(index)
     {:noreply, assign(socket, :changeset, changeset |> Quizzes.add_quiz_question_opt(index))}
   end
@@ -111,5 +133,4 @@ defmodule ClaperWeb.QuizLive.QuizComponent do
   end
 
   defp maybe_change_current_quiz(socket, _), do: socket
-
 end
