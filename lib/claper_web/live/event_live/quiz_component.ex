@@ -3,8 +3,13 @@ defmodule ClaperWeb.EventLive.QuizComponent do
 
   @impl true
   def render(assigns) do
-    current_question = Enum.at(assigns.quiz.quiz_questions, assigns.current_quiz_question_idx)
-    is_submitted = length(assigns.current_quiz_responses) > 0
+    assigns =
+      assigns
+      |> assign(:is_submitted, length(assigns.current_quiz_responses) > 0)
+      |> assign(
+        :current_question,
+        check_current_question(assigns)
+      )
 
     ~H"""
     <div>
@@ -49,10 +54,10 @@ defmodule ClaperWeb.EventLive.QuizComponent do
           </div>
 
           <p class="text-xs text-gray-500 my-1"><%= gettext("Current quiz") %></p>
-          <%= if is_submitted do %>
+          <%= if is_nil(@current_question) do %>
             <p class="text-white text-lg font-semibold mb-2"><%= @quiz.title %></p>
           <% else %>
-            <p class="text-white text-lg font-semibold mb-2"><%= current_question.content %></p>
+            <p class="text-white text-lg font-semibold mb-2"><%= @current_question.content %></p>
             <p class="text-gray-600 text-sm mb-4">
               <%= @current_quiz_question_idx + 1 %>/<%= length(@quiz.quiz_questions) %>
             </p>
@@ -60,30 +65,55 @@ defmodule ClaperWeb.EventLive.QuizComponent do
         </div>
         <div>
           <div class="flex flex-col space-y-3 overflow-y-auto max-h-[500px]">
-            <%= if not is_submitted do %>
-              <%= for {opt, idx} <- Enum.with_index(current_question.quiz_question_opts) do %>
-                <button
-                  phx-click="select-quiz-question-opt"
-                  phx-value-opt={opt.id}
-                  class="bg-gray-500 px-3 py-2 rounded-xl flex justify-between items-center relative text-white"
-                >
-                  <div class="bg-gradient-to-r from-primary-500 to-secondary-500 h-full absolute left-0 transition-all rounded-l-3xl">
+            <%= if @current_question do %>
+              <%= for {opt, idx} <- Enum.with_index(@current_question.quiz_question_opts) do %>
+                <%= if @is_submitted do %>
+                  <div class={"bg-gray-500 px-3 py-2 rounded-xl flex justify-between items-center relative text-white #{if opt.is_correct, do: 'bg-green-600'} #{if not opt.is_correct && Enum.member?(Enum.map(@current_quiz_responses, &(&1.quiz_question_opt_id)), opt.id), do: 'bg-red-600'}"}>
+                    <div class="bg-gradient-to-r from-primary-500 to-secondary-500 h-full absolute left-0 transition-all rounded-l-3xl">
+                    </div>
+                    <div class="flex space-x-3 items-center z-10 text-left">
+                      <%= if Enum.member?(Enum.map(@current_quiz_responses, &(&1.quiz_question_opt_id)), opt.id) do %>
+                        <span class="h-5 w-5 mt-0.5 rounded-md point-select bg-white"></span>
+                      <% else %>
+                        <span class="h-5 w-5 mt-0.5 rounded-md point-select border-2 border-white">
+                        </span>
+                      <% end %>
+                      <span class="flex-1 pr-2"><%= opt.content %></span>
+                    </div>
                   </div>
-                  <div class="flex space-x-3 items-center z-10 text-left">
-                    <%= if Enum.member?(@selected_quiz_question_opts, opt) do %>
-                      <span class="h-5 w-5 mt-0.5 rounded-md point-select bg-white"></span>
-                    <% else %>
-                      <span class="h-5 w-5 mt-0.5 rounded-md point-select border-2 border-white">
-                      </span>
-                    <% end %>
-                    <span class="flex-1 pr-2"><%= opt.content %></span>
-                  </div>
-                </button>
+                <% else %>
+                  <button
+                    phx-click="select-quiz-question-opt"
+                    phx-value-opt={opt.id}
+                    class="bg-gray-500 px-3 py-2 rounded-xl flex justify-between items-center relative text-white"
+                  >
+                    <div class="bg-gradient-to-r from-primary-500 to-secondary-500 h-full absolute left-0 transition-all rounded-l-3xl">
+                    </div>
+                    <div class="flex space-x-3 items-center z-10 text-left">
+                      <%= if Enum.member?(@selected_quiz_question_opts, opt) do %>
+                        <span class="h-5 w-5 mt-0.5 rounded-md point-select bg-white"></span>
+                      <% else %>
+                        <span class="h-5 w-5 mt-0.5 rounded-md point-select border-2 border-white">
+                        </span>
+                      <% end %>
+                      <span class="flex-1 pr-2"><%= opt.content %></span>
+                    </div>
+                  </button>
+                <% end %>
               <% end %>
             <% else %>
-              <div class="text-gray-400 flex flex-col items-center justify-center font-semibold text-lg mt-4 mb-8">
+              <div class="text-gray-400 flex flex-col items-center justify-center font-semibold text-lg mt-4 mb-6">
                 <%= if @quiz.show_results do %>
-                  MY RESULTS
+                  <p><%= gettext("Your score") %></p>
+                  <p class="text-6xl font-bold mt-2">
+                    <%= elem(@quiz_score, 0) %>/<%= elem(@quiz_score, 1) %>
+                  </p>
+                  <button
+                    phx-click="show-quiz-results"
+                    class="mt-7 px-3 py-2 text-white font-semibold bg-primary-500 hover:bg-primary-600 rounded-md mt-3 mb-4"
+                  >
+                    <%= gettext("Show results") %>
+                  </button>
                 <% else %>
                   <p><%= gettext("Waiting for results...") %></p>
                   <svg
@@ -109,7 +139,7 @@ defmodule ClaperWeb.EventLive.QuizComponent do
             <% end %>
           </div>
 
-          <div :if={not is_submitted}>
+          <div :if={not @is_submitted}>
             <button
               :if={@current_quiz_question_idx > 0}
               phx-click="prev-question"
@@ -134,6 +164,27 @@ defmodule ClaperWeb.EventLive.QuizComponent do
               <%= gettext("Submit") %>
             </button>
           </div>
+
+          <div :if={@is_submitted && @quiz.show_results}>
+            <button
+              :if={
+                @current_quiz_question_idx > 0 &&
+                  @current_quiz_question_idx <= length(@quiz.quiz_questions) - 1
+              }
+              phx-click="prev-question"
+              class="px-3 py-2 text-white font-semibold mt-3 mb-4"
+            >
+              <%= gettext("Back") %>
+            </button>
+
+            <button
+              :if={@current_quiz_question_idx <= length(@quiz.quiz_questions) - 1}
+              phx-click="next-question"
+              class="px-3 py-2 text-white font-semibold mt-3 mb-4"
+            >
+              <%= gettext("Next") %>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -153,5 +204,13 @@ defmodule ClaperWeb.EventLive.QuizComponent do
       in: "animate__animated animate__zoomIn",
       to: "#extended-quiz"
     )
+  end
+
+  defp check_current_question(assigns) do
+    if length(assigns.current_quiz_responses) > 0 && not assigns.quiz.show_results do
+      nil
+    else
+      Enum.at(assigns.quiz.quiz_questions, assigns.current_quiz_question_idx)
+    end
   end
 end

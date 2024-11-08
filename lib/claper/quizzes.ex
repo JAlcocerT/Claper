@@ -159,6 +159,25 @@ defmodule Claper.Quizzes do
     Quiz.changeset(quiz, attrs)
   end
 
+  @doc """
+  Adds a new quiz question to a quiz changeset.
+
+  Creates a new question with two default empty options and appends it to the existing questions.
+
+  ## Parameters
+
+    - changeset: The quiz changeset to add the question to.
+
+  ## Returns
+
+  The updated changeset with the new question added.
+
+  ## Examples
+
+      iex> add_quiz_question(quiz_changeset)
+      %Ecto.Changeset{}
+
+  """
   def add_quiz_question(changeset) do
     existing_questions = Ecto.Changeset.get_field(changeset, :quiz_questions, [])
 
@@ -176,6 +195,28 @@ defmodule Claper.Quizzes do
     Ecto.Changeset.put_assoc(changeset, :quiz_questions, updated_questions)
   end
 
+  @doc """
+  Submits quiz responses for a user.
+
+  Records the user's selected options and increments response counts.
+
+  ## Parameters
+
+    - user_id: The ID of the user submitting responses
+    - event_uuid: The UUID of the event
+    - quiz_opts: List of selected quiz options
+    - quiz_id: The ID of the quiz being submitted
+
+  ## Returns
+
+  Broadcasts the updated quiz on successful submission.
+
+  ## Examples
+
+      iex> submit_quiz(123, "event-uuid", quiz_opts, 456)
+      {:ok, quiz}
+
+  """
   def submit_quiz(user_id, event_uuid, quiz_opts, quiz_id)
       when is_number(user_id) and is_list(quiz_opts) do
     case Enum.reduce(quiz_opts, Ecto.Multi.new(), fn opt, multi ->
@@ -201,6 +242,28 @@ defmodule Claper.Quizzes do
     end
   end
 
+  @doc """
+  Submits quiz responses for an attendee.
+
+  Records the attendee's selected options and increments response counts.
+
+  ## Parameters
+
+    - attendee_identifier: The identifier of the attendee submitting responses
+    - event_uuid: The UUID of the event
+    - quiz_opts: List of selected quiz options
+    - quiz_id: The ID of the quiz being submitted
+
+  ## Returns
+
+  Broadcasts the updated quiz on successful submission.
+
+  ## Examples
+
+      iex> submit_quiz(789, "event-uuid", quiz_opts, 456)
+      {:ok, quiz}
+
+  """
   def submit_quiz(attendee_identifier, event_uuid, quiz_opts, quiz_id)
       when is_number(attendee_identifier) and is_list(quiz_opts) do
     case Enum.reduce(quiz_opts, Ecto.Multi.new(), fn opt, multi ->
@@ -224,6 +287,55 @@ defmodule Claper.Quizzes do
         quiz = get_quiz!(quiz_id)
         broadcast({:ok, quiz, event_uuid}, :quiz_updated)
     end
+  end
+
+  @doc """
+  Calculates the quiz score for a given user, handling multiple correct answers per question.
+
+  Takes a user_id or attendee_identifier and returns their score for the specified quiz.
+
+  ## Parameters
+
+    - user_id: Integer user ID or string attendee_identifier
+    - quiz_id: The ID of the quiz to calculate score for
+
+  ## Returns
+
+  A tuple containing {correct_answers, total_questions}.
+
+  ## Examples
+
+      iex> calculate_user_score(123, quiz_id)
+      {3, 4}
+
+      iex> calculate_user_score("abc123", quiz_id)
+      {3, 4}
+
+  """
+  def calculate_user_score(user_id, quiz_id) when is_number(user_id) or is_binary(user_id) do
+    # Get the user's responses
+    responses = get_quiz_responses(user_id, quiz_id)
+
+    # Get quiz with questions and correct answers
+    quiz = get_quiz!(quiz_id)
+
+    # Count correct responses per question
+    correct_count =
+      quiz.quiz_questions
+      |> Enum.count(fn question ->
+        # Get all user responses for this question
+        question_responses = Enum.filter(responses, &(&1.quiz_question_id == question.id))
+        # Get all correct options for this question
+        correct_opts = Enum.filter(question.quiz_question_opts, & &1.is_correct)
+
+        # User must select all correct options and no incorrect ones
+        user_opt_ids = Enum.map(question_responses, & &1.quiz_question_opt_id) |> MapSet.new()
+        correct_opt_ids = Enum.map(correct_opts, & &1.id) |> MapSet.new()
+
+        MapSet.equal?(user_opt_ids, correct_opt_ids)
+      end)
+
+    {correct_count, length(quiz.quiz_questions)}
   end
 
   @doc """

@@ -591,6 +591,15 @@ defmodule ClaperWeb.EventLive.Show do
 
   @impl true
   def handle_event(
+        "show-quiz-results",
+        _params,
+        socket
+      ) do
+    {:noreply, socket |> assign(:current_quiz_question_idx, 0)}
+  end
+
+  @impl true
+  def handle_event(
         "select-quiz-question-opt",
         %{"opt" => opt},
         socket
@@ -764,7 +773,10 @@ defmodule ClaperWeb.EventLive.Show do
   defp get_current_quiz_reponses(%{assigns: %{current_user: current_user}} = socket, quiz_id)
        when is_map(current_user) do
     responses = Quizzes.get_quiz_responses(current_user.id, quiz_id)
-    socket |> assign(:current_quiz_responses, responses)
+
+    socket
+    |> assign(:current_quiz_responses, responses)
+    |> assign(:quiz_score, Quizzes.calculate_user_score(current_user.id, quiz_id))
   end
 
   defp get_current_quiz_reponses(
@@ -772,7 +784,10 @@ defmodule ClaperWeb.EventLive.Show do
          quiz_id
        ) do
     responses = Quizzes.get_quiz_responses(attendee_identifier, quiz_id)
-    socket |> assign(:current_quiz_responses, responses)
+
+    socket
+    |> assign(:current_quiz_responses, responses)
+    |> assign(:quiz_score, Quizzes.calculate_user_score(attendee_identifier, quiz_id))
   end
 
   defp reacted_posts(
