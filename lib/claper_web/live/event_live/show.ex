@@ -642,12 +642,14 @@ defmodule ClaperWeb.EventLive.Show do
       when is_map(current_user) do
     case Claper.Quizzes.submit_quiz(
            current_user.id,
-           socket.assigns.event.uuid,
            opts,
            socket.assigns.current_interaction.id
          ) do
-      {:ok, _quiz} ->
-        {:noreply, socket}
+      {:ok, quiz} ->
+        {:noreply,
+         socket
+         |> load_current_interaction(quiz, true)
+         |> assign(:current_quiz_question_idx, socket.assigns.current_quiz_question_idx + 1)}
     end
   end
 
@@ -660,12 +662,14 @@ defmodule ClaperWeb.EventLive.Show do
       ) do
     case Claper.Quizzes.submit_quiz(
            attendee_identifier,
-           socket.assigns.event.uuid,
            opts,
            socket.assigns.current_interaction.id
          ) do
-      {:ok, _quiz} ->
-        {:noreply, socket}
+      {:ok, quiz} ->
+        {:noreply,
+         socket
+         |> load_current_interaction(quiz, true)
+         |> assign(:current_quiz_question_idx, socket.assigns.current_quiz_question_idx + 1)}
     end
   end
 
@@ -837,9 +841,17 @@ defmodule ClaperWeb.EventLive.Show do
   end
 
   defp load_current_interaction(socket, %Quizzes.Quiz{} = interaction, _same_interaction) do
-    socket
-    |> assign(:current_interaction, interaction)
-    |> get_current_quiz_reponses(interaction.id)
+    socket =
+      socket
+      |> assign(:current_interaction, interaction)
+      |> get_current_quiz_reponses(interaction.id)
+
+    if length(socket.assigns.current_quiz_responses) > 0 do
+      socket
+      |> assign(:current_quiz_question_idx, length(interaction.quiz_questions))
+    else
+      socket
+    end
   end
 
   defp load_current_interaction(socket, interaction, _same_interaction) do

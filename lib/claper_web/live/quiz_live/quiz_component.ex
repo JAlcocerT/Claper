@@ -44,8 +44,7 @@ defmodule ClaperWeb.QuizLive.QuizComponent do
         _params,
         %{
           assigns: %{
-            changeset: changeset,
-            current_quiz_question_index: current_quiz_question_index
+            changeset: changeset
           }
         } = socket
       ) do
@@ -115,7 +114,6 @@ defmodule ClaperWeb.QuizLive.QuizComponent do
          |> push_navigate(to: socket.assigns.return_to)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        IO.inspect(changeset, label: "changeset")
         {:noreply, assign(socket, changeset: changeset)}
     end
   end

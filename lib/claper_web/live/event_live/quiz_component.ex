@@ -66,9 +66,9 @@ defmodule ClaperWeb.EventLive.QuizComponent do
         <div>
           <div class="flex flex-col space-y-3 overflow-y-auto max-h-[500px]">
             <%= if @current_question do %>
-              <%= for {opt, idx} <- Enum.with_index(@current_question.quiz_question_opts) do %>
+              <%= for {opt, _idx} <- Enum.with_index(@current_question.quiz_question_opts) do %>
                 <%= if @is_submitted do %>
-                  <div class={"bg-gray-500 px-3 py-2 rounded-xl flex justify-between items-center relative text-white #{if opt.is_correct, do: 'bg-green-600'} #{if not opt.is_correct && Enum.member?(Enum.map(@current_quiz_responses, &(&1.quiz_question_opt_id)), opt.id), do: 'bg-red-600'}"}>
+                  <div class={"bg-gray-500 px-3 py-2 rounded-xl flex justify-between items-center relative text-white #{if opt.is_correct, do: "bg-green-600"} #{if not opt.is_correct && Enum.member?(Enum.map(@current_quiz_responses, &(&1.quiz_question_opt_id)), opt.id), do: "bg-red-600"}"}>
                     <div class="bg-gradient-to-r from-primary-500 to-secondary-500 h-full absolute left-0 transition-all rounded-l-3xl">
                     </div>
                     <div class="flex space-x-3 items-center z-10 text-left">

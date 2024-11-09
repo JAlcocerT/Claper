@@ -64,7 +64,7 @@ defmodule Claper.Quizzes do
   def get_quiz!(id) do
     Quiz
     |> Repo.get!(id)
-    |> Repo.preload([:quiz_questions, quiz_questions: :quiz_question_opts])
+    |> Repo.preload([:quiz_questions, :quiz_responses, quiz_questions: :quiz_question_opts])
   end
 
   @doc """
@@ -203,7 +203,6 @@ defmodule Claper.Quizzes do
   ## Parameters
 
     - user_id: The ID of the user submitting responses
-    - event_uuid: The UUID of the event
     - quiz_opts: List of selected quiz options
     - quiz_id: The ID of the quiz being submitted
 
@@ -213,11 +212,11 @@ defmodule Claper.Quizzes do
 
   ## Examples
 
-      iex> submit_quiz(123, "event-uuid", quiz_opts, 456)
+      iex> submit_quiz(123, quiz_opts, 456)
       {:ok, quiz}
 
   """
-  def submit_quiz(user_id, event_uuid, quiz_opts, quiz_id)
+  def submit_quiz(user_id, quiz_opts, quiz_id)
       when is_number(user_id) and is_list(quiz_opts) do
     case Enum.reduce(quiz_opts, Ecto.Multi.new(), fn opt, multi ->
            Ecto.Multi.update(
@@ -238,34 +237,12 @@ defmodule Claper.Quizzes do
          |> Repo.transaction() do
       {:ok, _} ->
         quiz = get_quiz!(quiz_id)
-        broadcast({:ok, quiz, event_uuid}, :quiz_updated)
+        {:ok, quiz}
     end
   end
 
-  @doc """
-  Submits quiz responses for an attendee.
-
-  Records the attendee's selected options and increments response counts.
-
-  ## Parameters
-
-    - attendee_identifier: The identifier of the attendee submitting responses
-    - event_uuid: The UUID of the event
-    - quiz_opts: List of selected quiz options
-    - quiz_id: The ID of the quiz being submitted
-
-  ## Returns
-
-  Broadcasts the updated quiz on successful submission.
-
-  ## Examples
-
-      iex> submit_quiz(789, "event-uuid", quiz_opts, 456)
-      {:ok, quiz}
-
-  """
-  def submit_quiz(attendee_identifier, event_uuid, quiz_opts, quiz_id)
-      when is_number(attendee_identifier) and is_list(quiz_opts) do
+  def submit_quiz(attendee_identifier, quiz_opts, quiz_id)
+      when is_binary(attendee_identifier) and is_list(quiz_opts) do
     case Enum.reduce(quiz_opts, Ecto.Multi.new(), fn opt, multi ->
            Ecto.Multi.update(
              multi,
@@ -285,7 +262,7 @@ defmodule Claper.Quizzes do
          |> Repo.transaction() do
       {:ok, _} ->
         quiz = get_quiz!(quiz_id)
-        broadcast({:ok, quiz, event_uuid}, :quiz_updated)
+        {:ok, quiz}
     end
   end
 
