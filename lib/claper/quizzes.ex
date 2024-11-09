@@ -54,17 +54,17 @@ defmodule Claper.Quizzes do
 
   ## Examples
 
-      iex> get_quiz!(123)
+      iex> get_quiz!(123, [:quiz_questions, quiz_questions: :quiz_question_opts])
       %Quiz{}
 
       iex> get_quiz!(456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_quiz!(id) do
+  def get_quiz!(id, preload \\ []) do
     Quiz
     |> Repo.get!(id)
-    |> Repo.preload([:quiz_questions, :quiz_responses, quiz_questions: :quiz_question_opts])
+    |> Repo.preload(preload)
   end
 
   @doc """
@@ -236,7 +236,7 @@ defmodule Claper.Quizzes do
          end)
          |> Repo.transaction() do
       {:ok, _} ->
-        quiz = get_quiz!(quiz_id)
+        quiz = get_quiz!(quiz_id, [:quiz_questions, quiz_questions: :quiz_question_opts])
         {:ok, quiz}
     end
   end
@@ -261,7 +261,7 @@ defmodule Claper.Quizzes do
          end)
          |> Repo.transaction() do
       {:ok, _} ->
-        quiz = get_quiz!(quiz_id)
+        quiz = get_quiz!(quiz_id, [:quiz_questions, quiz_questions: :quiz_question_opts])
         {:ok, quiz}
     end
   end
@@ -294,7 +294,7 @@ defmodule Claper.Quizzes do
     responses = get_quiz_responses(user_id, quiz_id)
 
     # Get quiz with questions and correct answers
-    quiz = get_quiz!(quiz_id)
+    quiz = get_quiz!(quiz_id, [:quiz_questions, quiz_questions: :quiz_question_opts])
 
     # Count correct responses per question
     correct_count =
