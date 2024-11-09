@@ -77,9 +77,9 @@ defmodule ClaperWeb.EventLive.Show do
       socket
       |> assign(:attendees_nb, 1)
       |> assign(:post_changeset, post_changeset)
-      |> assign(:liked_posts, reacted_posts(socket, event.id, "👍"))
-      |> assign(:loved_posts, reacted_posts(socket, event.id, "❤️"))
-      |> assign(:loled_posts, reacted_posts(socket, event.id, "😂"))
+      |> assign(:like_posts, reacted_posts(socket, event.id, "👍"))
+      |> assign(:love_posts, reacted_posts(socket, event.id, "❤️"))
+      |> assign(:lol_posts, reacted_posts(socket, event.id, "😂"))
       |> assign(:selected_poll_opt, [])
       |> assign(:selected_quiz_question_opts, [])
       |> assign(:current_quiz_question_idx, 0)
@@ -432,9 +432,9 @@ defmodule ClaperWeb.EventLive.Show do
       )
       when is_map(current_user) do
     case type do
-      "👍" -> {:noreply, add_post_like(socket, post_id, %{icon: type, user_id: current_user.id})}
-      "❤️" -> {:noreply, add_post_love(socket, post_id, %{icon: type, user_id: current_user.id})}
-      "😂" -> {:noreply, add_post_lol(socket, post_id, %{icon: type, user_id: current_user.id})}
+      "👍" -> {:noreply, add_reaction(socket, post_id, %{icon: type, user_id: current_user.id}, :like)}
+      "❤️" -> {:noreply, add_reaction(socket, post_id, %{icon: type, user_id: current_user.id}, :love)}
+      "😂" -> {:noreply, add_reaction(socket, post_id, %{icon: type, user_id: current_user.id}, :lol)}
     end
   end
 
@@ -447,15 +447,15 @@ defmodule ClaperWeb.EventLive.Show do
     case type do
       "👍" ->
         {:noreply,
-         add_post_like(socket, post_id, %{icon: type, attendee_identifier: attendee_identifier})}
+         add_reaction(socket, post_id, %{icon: type, attendee_identifier: attendee_identifier}, :like)}
 
       "❤️" ->
         {:noreply,
-         add_post_love(socket, post_id, %{icon: type, attendee_identifier: attendee_identifier})}
+         add_reaction(socket, post_id, %{icon: type, attendee_identifier: attendee_identifier}, :love)}
 
       "😂" ->
         {:noreply,
-         add_post_lol(socket, post_id, %{icon: type, attendee_identifier: attendee_identifier})}
+         add_reaction(socket, post_id, %{icon: type, attendee_identifier: attendee_identifier}, :lol)}
     end
   end
 
@@ -468,13 +468,13 @@ defmodule ClaperWeb.EventLive.Show do
       when is_map(current_user) do
     case type do
       "👍" ->
-        {:noreply, remove_post_like(socket, post_id, %{icon: type, user_id: current_user.id})}
+        {:noreply, remove_reaction(socket, post_id, %{icon: type, user_id: current_user.id}, :like)}
 
       "❤️" ->
-        {:noreply, remove_post_love(socket, post_id, %{icon: type, user_id: current_user.id})}
+        {:noreply, remove_reaction(socket, post_id, %{icon: type, user_id: current_user.id}, :love)}
 
       "😂" ->
-        {:noreply, remove_post_lol(socket, post_id, %{icon: type, user_id: current_user.id})}
+        {:noreply, remove_reaction(socket, post_id, %{icon: type, user_id: current_user.id}, :lol)}
     end
   end
 
@@ -487,15 +487,15 @@ defmodule ClaperWeb.EventLive.Show do
     case type do
       "👍" ->
         {:noreply,
-         remove_post_like(socket, post_id, %{icon: type, attendee_identifier: attendee_identifier})}
+         remove_reaction(socket, post_id, %{icon: type, attendee_identifier: attendee_identifier}, :like)}
 
       "❤️" ->
         {:noreply,
-         remove_post_love(socket, post_id, %{icon: type, attendee_identifier: attendee_identifier})}
+         remove_reaction(socket, post_id, %{icon: type, attendee_identifier: attendee_identifier}, :love)}
 
       "😂" ->
         {:noreply,
-         remove_post_lol(socket, post_id, %{icon: type, attendee_identifier: attendee_identifier})}
+         remove_reaction(socket, post_id, %{icon: type, attendee_identifier: attendee_identifier}, :lol)}
     end
   end
 
@@ -697,51 +697,25 @@ defmodule ClaperWeb.EventLive.Show do
     )
   end
 
-  defp add_post_like(socket, post_id, params) do
+  defp add_reaction(socket, post_id, params, type) do
     with post <- Posts.get_post!(post_id, [:event]),
          {:ok, _} <- Posts.create_reaction(Map.merge(params, %{post: post})) do
-      {:ok, _} = Posts.update_post(post, %{like_count: post.like_count + 1})
-      update(socket, :liked_posts, fn liked_posts -> [post.id | liked_posts] end)
+      count_field = String.to_atom("#{type}_count")
+      posts_field = String.to_atom("#{type}_posts")
+
+      {:ok, _} = Posts.update_post(post, %{count_field => Map.get(post, count_field) + 1})
+      update(socket, posts_field, fn posts -> [post.id | posts] end)
     end
   end
 
-  defp remove_post_like(socket, post_id, params) do
+  defp remove_reaction(socket, post_id, params, type) do
     with post <- Posts.get_post!(post_id, [:event]),
          {:ok, _} <- Posts.delete_reaction(Map.merge(params, %{post: post})) do
-      {:ok, _} = Posts.update_post(post, %{like_count: post.like_count - 1})
-      update(socket, :liked_posts, fn liked_posts -> List.delete(liked_posts, post.id) end)
-    end
-  end
+      count_field = String.to_atom("#{type}_count")
+      posts_field = String.to_atom("#{type}_posts")
 
-  defp add_post_love(socket, post_id, params) do
-    with post <- Posts.get_post!(post_id, [:event]),
-         {:ok, _} <- Posts.create_reaction(Map.merge(params, %{post: post})) do
-      {:ok, _} = Posts.update_post(post, %{love_count: post.love_count + 1})
-      update(socket, :loved_posts, fn loved_posts -> [post.id | loved_posts] end)
-    end
-  end
-
-  defp remove_post_love(socket, post_id, params) do
-    with post <- Posts.get_post!(post_id, [:event]),
-         {:ok, _} <- Posts.delete_reaction(Map.merge(params, %{post: post})) do
-      {:ok, _} = Posts.update_post(post, %{love_count: post.love_count - 1})
-      update(socket, :loved_posts, fn loved_posts -> List.delete(loved_posts, post.id) end)
-    end
-  end
-
-  defp add_post_lol(socket, post_id, params) do
-    with post <- Posts.get_post!(post_id, [:event]),
-         {:ok, _} <- Posts.create_reaction(Map.merge(params, %{post: post})) do
-      {:ok, _} = Posts.update_post(post, %{lol_count: post.lol_count + 1})
-      update(socket, :loled_posts, fn loled_posts -> [post.id | loled_posts] end)
-    end
-  end
-
-  defp remove_post_lol(socket, post_id, params) do
-    with post <- Posts.get_post!(post_id, [:event]),
-         {:ok, _} <- Posts.delete_reaction(Map.merge(params, %{post: post})) do
-      {:ok, _} = Posts.update_post(post, %{lol_count: post.lol_count - 1})
-      update(socket, :loled_posts, fn loled_posts -> List.delete(loled_posts, post.id) end)
+      {:ok, _} = Posts.update_post(post, %{count_field => Map.get(post, count_field) - 1})
+      update(socket, posts_field, fn posts -> List.delete(posts, post.id) end)
     end
   end
 
