@@ -17,7 +17,7 @@ defmodule ClaperWeb.QuizLive.QuizComponent do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    quiz = Quizzes.get_quiz!(id)
+    quiz = Quizzes.get_quiz!(id, [:quiz_questions, quiz_questions: :quiz_question_opts])
     {:ok, _} = Quizzes.delete_quiz(socket.assigns.event_uuid, quiz)
 
     {:noreply, socket |> push_navigate(to: socket.assigns.return_to)}
@@ -119,7 +119,7 @@ defmodule ClaperWeb.QuizLive.QuizComponent do
   end
 
   defp maybe_change_current_quiz(socket, %{enabled: true} = quiz) do
-    quiz = Quizzes.get_quiz!(quiz.id)
+    quiz = Quizzes.get_quiz!(quiz.id, [:quiz_questions, quiz_questions: :quiz_question_opts])
 
     Phoenix.PubSub.broadcast(
       Claper.PubSub,

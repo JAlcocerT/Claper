@@ -68,6 +68,25 @@ defmodule Claper.Quizzes do
   end
 
   @doc """
+  Gets a single quiz for a given position.
+
+  ## Examples
+
+      iex> get_quiz_current_position(123, 0)
+      %Quiz{}
+
+  """
+  def get_quiz_current_position(presentation_file_id, position) do
+    from(q in Quiz,
+      where:
+        q.position == ^position and q.presentation_file_id == ^presentation_file_id and
+          q.enabled == true
+    )
+    |> Repo.one()
+    |> Repo.preload([:quiz_questions, quiz_questions: :quiz_question_opts])
+  end
+
+  @doc """
   Creates a quiz.
 
   ## Parameters
@@ -313,6 +332,84 @@ defmodule Claper.Quizzes do
       end)
 
     {correct_count, length(quiz.quiz_questions)}
+  end
+
+  @doc """
+  Calculates the average quiz score across all participants.
+
+  Takes a quiz_id and returns the average score as a percentage.
+
+  ## Parameters
+
+    - quiz_id: The ID of the quiz to calculate average score for
+
+  ## Returns
+
+  A float representing the average score percentage.
+
+  ## Examples
+
+      iex> calculate_average_score(123)
+      75.5
+
+  """
+  def calculate_average_score(quiz_id) do
+    # Get quiz with questions and correct answers
+    quiz = get_quiz!(quiz_id, [:quiz_questions, quiz_questions: :quiz_question_opts])
+
+    # Get all responses grouped by user/attendee
+    responses =
+      from(r in QuizResponse,
+        where: r.quiz_id == ^quiz_id,
+        select: %{
+          user_id: r.user_id,
+          attendee_identifier: r.attendee_identifier,
+          quiz_question_id: r.quiz_question_id,
+          quiz_question_opt_id: r.quiz_question_opt_id
+        }
+      )
+      |> Repo.all()
+
+    # Group responses by user_id or attendee_identifier
+    responses_by_user =
+      responses
+      |> Enum.group_by(fn response ->
+        case response.user_id do
+          nil -> response.attendee_identifier
+          id -> id
+        end
+      end)
+
+    scores =
+      Enum.map(responses_by_user, fn {_user_id, user_responses} ->
+        correct_count =
+          quiz.quiz_questions
+          |> Enum.count(fn question ->
+            # Get user responses for this question
+            question_responses =
+              Enum.filter(user_responses, &(&1.quiz_question_id == question.id))
+
+            # Get correct options for this question
+            correct_opts = Enum.filter(question.quiz_question_opts, & &1.is_correct)
+
+            # Check if user selected all correct options and no incorrect ones
+            user_opt_ids = Enum.map(question_responses, & &1.quiz_question_opt_id) |> MapSet.new()
+            correct_opt_ids = Enum.map(correct_opts, & &1.id) |> MapSet.new()
+
+            MapSet.equal?(user_opt_ids, correct_opt_ids)
+          end)
+
+        correct_count
+      end)
+
+    case length(scores) do
+      0 ->
+        0
+
+      n ->
+        avg = Enum.sum(scores) / n
+        if avg == trunc(avg), do: trunc(avg), else: avg
+    end
   end
 
   @doc """

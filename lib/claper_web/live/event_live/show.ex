@@ -318,6 +318,20 @@ defmodule ClaperWeb.EventLive.Show do
   end
 
   @impl true
+  def handle_info({:quiz_updated, %Claper.Quizzes.Quiz{enabled: true} = quiz}, socket) do
+    {:noreply,
+     socket
+     |> load_current_interaction(quiz, true)}
+  end
+
+  @impl true
+  def handle_info({:quiz_deleted, %Claper.Quizzes.Quiz{enabled: true}}, socket) do
+    {:noreply,
+     socket
+     |> update(:current_interaction, fn _current_interaction -> nil end)}
+  end
+
+  @impl true
   def handle_info({:react, type}, socket) do
     {:noreply,
      socket
@@ -432,9 +446,14 @@ defmodule ClaperWeb.EventLive.Show do
       )
       when is_map(current_user) do
     case type do
-      "👍" -> {:noreply, add_reaction(socket, post_id, %{icon: type, user_id: current_user.id}, :like)}
-      "❤️" -> {:noreply, add_reaction(socket, post_id, %{icon: type, user_id: current_user.id}, :love)}
-      "😂" -> {:noreply, add_reaction(socket, post_id, %{icon: type, user_id: current_user.id}, :lol)}
+      "👍" ->
+        {:noreply, add_reaction(socket, post_id, %{icon: type, user_id: current_user.id}, :like)}
+
+      "❤️" ->
+        {:noreply, add_reaction(socket, post_id, %{icon: type, user_id: current_user.id}, :love)}
+
+      "😂" ->
+        {:noreply, add_reaction(socket, post_id, %{icon: type, user_id: current_user.id}, :lol)}
     end
   end
 
@@ -447,15 +466,30 @@ defmodule ClaperWeb.EventLive.Show do
     case type do
       "👍" ->
         {:noreply,
-         add_reaction(socket, post_id, %{icon: type, attendee_identifier: attendee_identifier}, :like)}
+         add_reaction(
+           socket,
+           post_id,
+           %{icon: type, attendee_identifier: attendee_identifier},
+           :like
+         )}
 
       "❤️" ->
         {:noreply,
-         add_reaction(socket, post_id, %{icon: type, attendee_identifier: attendee_identifier}, :love)}
+         add_reaction(
+           socket,
+           post_id,
+           %{icon: type, attendee_identifier: attendee_identifier},
+           :love
+         )}
 
       "😂" ->
         {:noreply,
-         add_reaction(socket, post_id, %{icon: type, attendee_identifier: attendee_identifier}, :lol)}
+         add_reaction(
+           socket,
+           post_id,
+           %{icon: type, attendee_identifier: attendee_identifier},
+           :lol
+         )}
     end
   end
 
@@ -468,13 +502,16 @@ defmodule ClaperWeb.EventLive.Show do
       when is_map(current_user) do
     case type do
       "👍" ->
-        {:noreply, remove_reaction(socket, post_id, %{icon: type, user_id: current_user.id}, :like)}
+        {:noreply,
+         remove_reaction(socket, post_id, %{icon: type, user_id: current_user.id}, :like)}
 
       "❤️" ->
-        {:noreply, remove_reaction(socket, post_id, %{icon: type, user_id: current_user.id}, :love)}
+        {:noreply,
+         remove_reaction(socket, post_id, %{icon: type, user_id: current_user.id}, :love)}
 
       "😂" ->
-        {:noreply, remove_reaction(socket, post_id, %{icon: type, user_id: current_user.id}, :lol)}
+        {:noreply,
+         remove_reaction(socket, post_id, %{icon: type, user_id: current_user.id}, :lol)}
     end
   end
 
@@ -487,15 +524,30 @@ defmodule ClaperWeb.EventLive.Show do
     case type do
       "👍" ->
         {:noreply,
-         remove_reaction(socket, post_id, %{icon: type, attendee_identifier: attendee_identifier}, :like)}
+         remove_reaction(
+           socket,
+           post_id,
+           %{icon: type, attendee_identifier: attendee_identifier},
+           :like
+         )}
 
       "❤️" ->
         {:noreply,
-         remove_reaction(socket, post_id, %{icon: type, attendee_identifier: attendee_identifier}, :love)}
+         remove_reaction(
+           socket,
+           post_id,
+           %{icon: type, attendee_identifier: attendee_identifier},
+           :love
+         )}
 
       "😂" ->
         {:noreply,
-         remove_reaction(socket, post_id, %{icon: type, attendee_identifier: attendee_identifier}, :lol)}
+         remove_reaction(
+           socket,
+           post_id,
+           %{icon: type, attendee_identifier: attendee_identifier},
+           :lol
+         )}
     end
   end
 

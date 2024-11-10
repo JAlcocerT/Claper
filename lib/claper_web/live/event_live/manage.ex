@@ -237,6 +237,13 @@ defmodule ClaperWeb.EventLive.Manage do
   end
 
   @impl true
+  def handle_info({:quiz_updated, quiz}, socket) do
+    {:noreply,
+     socket
+     |> interactions_at_position(quiz.position)}
+  end
+
+  @impl true
   def handle_info({:poll_deleted, poll}, socket) do
     {:noreply,
      socket
@@ -255,6 +262,13 @@ defmodule ClaperWeb.EventLive.Manage do
     {:noreply,
      socket
      |> interactions_at_position(form.position)}
+  end
+
+  @impl true
+  def handle_info({:quiz_deleted, quiz}, socket) do
+    {:noreply,
+     socket
+     |> interactions_at_position(quiz.position)}
   end
 
   @impl true
@@ -587,6 +601,24 @@ defmodule ClaperWeb.EventLive.Manage do
   end
 
   @impl true
+  def handle_event(
+        "checked",
+        %{"key" => "quiz_show_results", "value" => value},
+        %{assigns: %{current_interaction: interaction}} = socket
+      ) do
+    {:ok, new_interaction} =
+      Claper.Quizzes.update_quiz(
+        socket.assigns.event.uuid,
+        interaction,
+        %{
+          :show_results => value
+        }
+      )
+
+    {:noreply, socket |> assign(:current_interaction, new_interaction)}
+  end
+
+  @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     post = Claper.Posts.get_post!(id, [:event])
     {:ok, _} = Claper.Posts.delete_post(post)
@@ -802,7 +834,7 @@ defmodule ClaperWeb.EventLive.Manage do
   end
 
   defp apply_action(socket, :edit_quiz, %{"id" => id}) do
-    quiz = Quizzes.get_quiz!(id)
+    quiz = Quizzes.get_quiz!(id, [:quiz_questions, quiz_questions: :quiz_question_opts])
 
     socket
     |> assign(:create, "quiz")

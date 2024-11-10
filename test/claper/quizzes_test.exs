@@ -25,12 +25,14 @@ defmodule Claper.QuizzesTest do
 
     test "get_quiz!/1 returns the quiz with given id" do
       quiz = quiz_fixture()
-      assert Quizzes.get_quiz!(quiz.id, [quiz_questions: :quiz_question_opts]) ==
-        quiz
+
+      assert Quizzes.get_quiz!(quiz.id, quiz_questions: :quiz_question_opts) ==
+               quiz
     end
 
     test "create_quiz/1 with valid data creates a quiz" do
       presentation_file = presentation_file_fixture()
+
       valid_attrs = %{
         title: "Test Quiz",
         position: 1,
@@ -64,7 +66,8 @@ defmodule Claper.QuizzesTest do
       update_attrs = %{title: "Updated Title"}
 
       assert {:ok, %Quiz{} = updated_quiz} =
-        Quizzes.update_quiz(event_uuid, quiz, update_attrs)
+               Quizzes.update_quiz(event_uuid, quiz, update_attrs)
+
       assert updated_quiz.title == "Updated Title"
     end
 
@@ -86,10 +89,12 @@ defmodule Claper.QuizzesTest do
       updated_changeset = Quizzes.add_quiz_question(changeset)
 
       questions = Ecto.Changeset.get_field(updated_changeset, :quiz_questions)
-      assert length(questions) == 2  # Original + new question
+      # Original + new question
+      assert length(questions) == 2
 
       new_question = List.last(questions)
-      assert length(new_question.quiz_question_opts) == 2  # Two default options
+      # Two default options
+      assert length(new_question.quiz_question_opts) == 2
     end
 
     test "submit_quiz/3 with user_id records responses and updates counts" do
@@ -99,7 +104,7 @@ defmodule Claper.QuizzesTest do
       option = List.first(question.quiz_question_opts)
 
       assert {:ok, updated_quiz} =
-        Quizzes.submit_quiz(user.id, [option], quiz.id)
+               Quizzes.submit_quiz(user.id, [option], quiz.id)
 
       updated_option =
         updated_quiz.quiz_questions
@@ -117,7 +122,7 @@ defmodule Claper.QuizzesTest do
       attendee_id = "test-attendee"
 
       assert {:ok, _updated_quiz} =
-        Quizzes.submit_quiz(attendee_id, [option], quiz.id)
+               Quizzes.submit_quiz(attendee_id, [option], quiz.id)
 
       responses = Quizzes.get_quiz_responses(attendee_id, quiz.id)
       assert length(responses) == 1
