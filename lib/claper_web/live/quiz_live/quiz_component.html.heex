@@ -65,6 +65,12 @@
             />
           </div>
 
+          <%= if Keyword.has_key?(q.errors, :quiz_question_opts) do %>
+            <p class="text-supporting-red-500 text-sm my-2">
+              <%= elem(Keyword.get(q.errors, :quiz_question_opts), 0) %>
+            </p>
+          <% end %>
+
           <div class="mt-5">
             <%= inputs_for q, :quiz_question_opts, fn o -> %>
               <div class="mt-2" id={"answer-#{o.index}"}>
@@ -167,7 +173,8 @@
       <button
         type="submit"
         phx_disable_with="Loading..."
-        class="w-full lg:w-auto px-6 text-white py-2 rounded-md tracking-wide font-bold focus:outline-none focus:shadow-outline bg-gradient-to-tl from-primary-500 to-secondary-500 bg-size-200 bg-pos-0 hover:bg-pos-100 transition-all duration-500"
+        disabled={!@changeset.valid?}
+        class="w-full lg:w-auto px-6 text-white py-2 rounded-md tracking-wide font-bold focus:outline-none focus:shadow-outline bg-gradient-to-tl from-primary-500 to-secondary-500 bg-size-200 bg-pos-0 hover:bg-pos-100 transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <%= case @live_action do
           :new -> gettext("Create")

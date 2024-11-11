@@ -10,6 +10,10 @@ defmodule ClaperWeb.EventLive.QuizComponent do
         :current_question,
         check_current_question(assigns)
       )
+      |> assign(
+        :has_selection,
+        length(assigns.selected_quiz_question_opts) > 0
+      )
 
     ~H"""
     <div>
@@ -38,7 +42,7 @@ defmodule ClaperWeb.EventLive.QuizComponent do
           </div>
         </div>
       </div>
-      <div id="extended-quiz" class="bg-gray-900 w-full py-3 px-6 text-black shadow-lg rounded-md">
+      <div id="extended-quiz" class="bg-gray-900 w-full p-4 text-black shadow-lg rounded-md">
         <div class="block w-full h-full cursor-pointer" phx-click={toggle_quiz()} phx-target={@myself}>
           <div id="poll-pane" class="float-right mt-2">
             <svg
@@ -53,12 +57,12 @@ defmodule ClaperWeb.EventLive.QuizComponent do
             </svg>
           </div>
 
-          <p class="text-xs text-gray-500 my-1"><%= gettext("Current quiz") %></p>
+          <p class="text-sm text-gray-400 my-1"><%= gettext("Current quiz") %></p>
           <%= if is_nil(@current_question) do %>
-            <p class="text-white text-lg font-semibold mb-2"><%= @quiz.title %></p>
+            <p class="text-white text-xl font-semibold mb-2"><%= @quiz.title %></p>
           <% else %>
-            <p class="text-white text-lg font-semibold mb-2"><%= @current_question.content %></p>
-            <p class="text-gray-600 text-sm mb-4">
+            <p class="text-white text-xl font-semibold mb-2"><%= @current_question.content %></p>
+            <p class="text-gray-400 text-sm mb-4">
               <%= @current_quiz_question_idx + 1 %>/<%= length(@quiz.quiz_questions) %>
             </p>
           <% end %>
@@ -68,9 +72,7 @@ defmodule ClaperWeb.EventLive.QuizComponent do
             <%= if @current_question do %>
               <%= for {opt, _idx} <- Enum.with_index(@current_question.quiz_question_opts) do %>
                 <%= if @is_submitted do %>
-                  <div class={"bg-gray-500 px-3 py-2 rounded-xl flex justify-between items-center relative text-white #{if opt.is_correct, do: "bg-green-600"} #{if not opt.is_correct && Enum.member?(Enum.map(@current_quiz_responses, &(&1.quiz_question_opt_id)), opt.id), do: "bg-red-600"}"}>
-                    <div class="bg-gradient-to-r from-primary-500 to-secondary-500 h-full absolute left-0 transition-all rounded-l-3xl">
-                    </div>
+                  <div class={"bg-gray-500 px-3 py-2 rounded-lg flex justify-between items-center relative text-white #{if opt.is_correct, do: "bg-green-600"} #{if not opt.is_correct && Enum.member?(Enum.map(@current_quiz_responses, &(&1.quiz_question_opt_id)), opt.id), do: "bg-red-600"}"}>
                     <div class="flex space-x-3 items-center z-10 text-left">
                       <%= if Enum.member?(Enum.map(@current_quiz_responses, &(&1.quiz_question_opt_id)), opt.id) do %>
                         <span class="h-5 w-5 mt-0.5 rounded-md point-select bg-white"></span>
@@ -85,7 +87,7 @@ defmodule ClaperWeb.EventLive.QuizComponent do
                   <button
                     phx-click="select-quiz-question-opt"
                     phx-value-opt={opt.id}
-                    class="bg-gray-500 px-3 py-2 rounded-xl flex justify-between items-center relative text-white"
+                    class="bg-gray-500 px-3 py-2 rounded-lg flex justify-between items-center relative text-white"
                   >
                     <div class="bg-gradient-to-r from-primary-500 to-secondary-500 h-full absolute left-0 transition-all rounded-l-3xl">
                     </div>
@@ -102,7 +104,7 @@ defmodule ClaperWeb.EventLive.QuizComponent do
                 <% end %>
               <% end %>
             <% else %>
-              <div class="text-gray-400 flex flex-col items-center justify-center font-semibold text-lg mt-4 mb-6">
+              <div class="text-gray-400 flex flex-col items-center justify-center font-semibold text-lg mt-4">
                 <%= if @quiz.show_results do %>
                   <p><%= gettext("Your score") %></p>
                   <p class="text-6xl font-bold mt-2">
@@ -110,7 +112,7 @@ defmodule ClaperWeb.EventLive.QuizComponent do
                   </p>
                   <button
                     phx-click="show-quiz-results"
-                    class="mt-7 px-3 py-2 text-white font-semibold bg-primary-500 hover:bg-primary-600 rounded-md mt-3 mb-4"
+                    class="mt-7 px-3 py-2 text-white font-medium bg-primary-400 hover:bg-primary-500 rounded-md mt-3 mb-4"
                   >
                     <%= gettext("Show results") %>
                   </button>
@@ -139,19 +141,20 @@ defmodule ClaperWeb.EventLive.QuizComponent do
             <% end %>
           </div>
 
-          <div :if={not @is_submitted}>
-            <button
-              :if={@current_quiz_question_idx > 0}
-              phx-click="prev-question"
-              class="px-3 py-2 text-white font-semibold mt-3 mb-4"
-            >
-              <%= gettext("Back") %>
-            </button>
+          <div :if={not @is_submitted} class="flex justify-between items-baseline w-full h-12 mt-5">
+            <%= if @current_quiz_question_idx > 0 do %>
+              <button phx-click="prev-question" class="px-3 py-2 text-white font-medium">
+                <%= gettext("Back") %>
+              </button>
+            <% else %>
+              <div class="w-1/2"></div>
+            <% end %>
 
             <button
               :if={@current_quiz_question_idx < length(@quiz.quiz_questions) - 1}
               phx-click="next-question"
-              class="px-3 py-2 text-white font-semibold bg-primary-500 hover:bg-primary-600 rounded-md mt-3 mb-4"
+              disabled={not @has_selection}
+              class={"px-3 py-2 text-white font-medium rounded-md h-full #{if @has_selection, do: "bg-primary-400 hover:bg-primary-500", else: "bg-gray-500 cursor-not-allowed"}"}
             >
               <%= gettext("Next") %>
             </button>
@@ -159,28 +162,32 @@ defmodule ClaperWeb.EventLive.QuizComponent do
             <button
               :if={@current_quiz_question_idx == length(@quiz.quiz_questions) - 1}
               phx-click="submit-quiz"
-              class="px-3 py-2 text-white font-semibold bg-primary-500 hover:bg-primary-600 rounded-md mt-3 mb-4"
+              disabled={not @has_selection}
+              class={"px-3 py-2 text-white font-medium rounded-md h-full #{if @has_selection, do: "bg-primary-400 hover:bg-primary-500", else: "bg-gray-500 cursor-not-allowed"}"}
             >
               <%= gettext("Submit") %>
             </button>
           </div>
 
-          <div :if={@is_submitted && @quiz.show_results}>
-            <button
-              :if={
-                @current_quiz_question_idx > 0 &&
-                  @current_quiz_question_idx <= length(@quiz.quiz_questions) - 1
-              }
-              phx-click="prev-question"
-              class="px-3 py-2 text-white font-semibold mt-3 mb-4"
-            >
-              <%= gettext("Back") %>
-            </button>
+          <div
+            :if={
+              @is_submitted && @quiz.show_results &&
+                @current_quiz_question_idx <= length(@quiz.quiz_questions) - 1
+            }
+            class="flex justify-between items-baseline w-full h-12 mt-5"
+          >
+            <%= if (@current_quiz_question_idx > 0 && @current_quiz_question_idx <= length(@quiz.quiz_questions) - 1) do %>
+              <button phx-click="prev-question" class="px-3 py-2 text-white font-medium">
+                <%= gettext("Back") %>
+              </button>
+            <% else %>
+              <div class="w-1/2"></div>
+            <% end %>
 
             <button
               :if={@current_quiz_question_idx <= length(@quiz.quiz_questions) - 1}
               phx-click="next-question"
-              class="px-3 py-2 text-white font-semibold mt-3 mb-4"
+              class="px-3 py-2 text-white font-medium bg-primary-400 hover:bg-primary-500 rounded-md h-full"
             >
               <%= gettext("Next") %>
             </button>

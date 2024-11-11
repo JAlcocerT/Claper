@@ -729,108 +729,6 @@
             <div class="grid grid-cols-1 @sm:grid-cols-2 @lg:grid-cols-3 gap-4 p-4 overflow-y-auto">
               <%= for interaction <- @interactions do %>
                 <div class="bg-white rounded-lg p-3 shadow-base transition-all flex flex-col justify-between relative">
-                  <div
-                    phx-hook="Dropdown"
-                    id={"poll-settings-#{interaction.id}"}
-                    class="hidden bg-white z-20 absolute text-sm w-full h-full top-0 left-0 p-3 rounded-lg overflow-y-auto"
-                  >
-                    <ul class="flex flex-col gap-y-2">
-                      <li>
-                        <button
-                          phx-click="checked"
-                          phx-value-key="poll_visible"
-                          value={"#{!@state.poll_visible}"}
-                          class="py-2 px-2 rounded text-gray-600 bg-gray-100 hover:bg-gray-200 flex justify-center items-center w-full gap-x-3"
-                        >
-                          <svg
-                            :if={@state.poll_visible}
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            class="h-6 w-6"
-                          >
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 4h1m4 0h13" /><path d="M4 4v10a2 2 0 0 0 2 2h10m3.42 -.592c.359 -.362 .58 -.859 .58 -1.408v-10" /><path d="M12 16v4" /><path d="M9 20h6" /><path d="M8 12l2 -2m4 0l2 -2" /><path d="M3 3l18 18" />
-                          </svg>
-
-                          <svg
-                            :if={!@state.poll_visible}
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            class="h-6 w-6"
-                          >
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 4l18 0" /><path d="M4 4v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-10" /><path d="M12 16l0 4" /><path d="M9 20l6 0" /><path d="M8 12l3 -3l2 2l3 -3" />
-                          </svg>
-
-                          <span :if={@state.poll_visible}>
-                            <%= gettext("Hide on presentation") %>
-                          </span>
-                          <span :if={!@state.poll_visible}>
-                            <%= gettext("Show on presentation") %>
-                          </span>
-                        </button>
-                      </li>
-                    </ul>
-                  </div>
-                  <div
-                    phx-hook="Dropdown"
-                    id={"quiz-settings-#{interaction.id}"}
-                    class="hidden bg-white z-20 absolute text-sm w-full h-full top-0 left-0 p-3 rounded-lg overflow-y-auto"
-                  >
-                    <ul class="flex flex-col gap-y-2">
-                      <li>
-                        <button
-                          phx-click="checked"
-                          phx-value-key="quiz_show_results"
-                          value={"#{!interaction.show_results}"}
-                          class="py-2 px-2 rounded text-gray-600 bg-gray-100 hover:bg-gray-200 flex justify-center items-center w-full gap-x-3"
-                        >
-                          <svg
-                            :if={interaction.show_results}
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            class="h-6 w-6"
-                          >
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 4h1m4 0h13" /><path d="M4 4v10a2 2 0 0 0 2 2h10m3.42 -.592c.359 -.362 .58 -.859 .58 -1.408v-10" /><path d="M12 16v4" /><path d="M9 20h6" /><path d="M8 12l2 -2m4 0l2 -2" /><path d="M3 3l18 18" />
-                          </svg>
-
-                          <svg
-                            :if={!interaction.show_results}
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            class="h-6 w-6"
-                          >
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 4l18 0" /><path d="M4 4v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-10" /><path d="M12 16l0 4" /><path d="M9 20l6 0" /><path d="M8 12l3 -3l2 2l3 -3" />
-                          </svg>
-
-                          <span :if={interaction.show_results}>
-                            <%= gettext("Hide results on presentation") %>
-                          </span>
-                          <span :if={!interaction.show_results}>
-                            <%= gettext("Show results on presentation") %>
-                          </span>
-                        </button>
-                      </li>
-                    </ul>
-                  </div>
                   <div>
                     <%= case interaction do %>
                       <% %Claper.Polls.Poll{} -> %>
@@ -1150,62 +1048,6 @@
                         >
                           <%= gettext("Disable") %>
                         </button>
-                        <div
-                          :if={
-                            case interaction do
-                              %Claper.Polls.Poll{} -> true
-                              _ -> false
-                            end
-                          }
-                          class="w-full flex-1 relative"
-                        >
-                          <button
-                            phx-click-away={JS.hide(to: "#poll-settings-#{interaction.id}")}
-                            phx-click={JS.toggle(to: "#poll-settings-#{interaction.id}")}
-                            class="bg-gray-100 text-gray-800 px-2 py-2 rounded text-sm font-medium relative"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                              fill="currentColor"
-                              class="h-5 w-5"
-                            >
-                              <path
-                                fill-rule="evenodd"
-                                d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 0 0-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 0 0-2.282.819l-.922 1.597a1.875 1.875 0 0 0 .432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 0 0 0 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 0 0-.432 2.385l.922 1.597a1.875 1.875 0 0 0 2.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 0 0 2.28-.819l.923-1.597a1.875 1.875 0 0 0-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 0 0 0-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 0 0-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 0 0-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 0 0-1.85-1.567h-1.843ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"
-                                clip-rule="evenodd"
-                              />
-                            </svg>
-                          </button>
-                        </div>
-                        <div
-                          :if={
-                            case interaction do
-                              %Claper.Quizzes.Quiz{} -> true
-                              _ -> false
-                            end
-                          }
-                          class="w-full flex-1 relative"
-                        >
-                          <button
-                            phx-click-away={JS.hide(to: "#quiz-settings-#{interaction.id}")}
-                            phx-click={JS.toggle(to: "#quiz-settings-#{interaction.id}")}
-                            class="bg-gray-100 text-gray-800 px-2 py-2 rounded text-sm font-medium relative"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                              fill="currentColor"
-                              class="h-5 w-5"
-                            >
-                              <path
-                                fill-rule="evenodd"
-                                d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 0 0-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 0 0-2.282.819l-.922 1.597a1.875 1.875 0 0 0 .432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 0 0 0 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 0 0-.432 2.385l.922 1.597a1.875 1.875 0 0 0 2.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 0 0 2.28-.819l.923-1.597a1.875 1.875 0 0 0-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 0 0 0-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 0 0-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 0 0-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 0 0-1.85-1.567h-1.843ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"
-                                clip-rule="evenodd"
-                              />
-                            </svg>
-                          </button>
-                        </div>
                       </div>
                     <% else %>
                       <button
@@ -1565,6 +1407,107 @@
             data-tg-tour={"<p class='mb-3'>#{gettext("You can control each setting for the presentation (showing on the big screen) and on the attendee's room.")}</p><p class='opacity-50 text-xs'>#{gettext("Use the associated keyboard shortcuts for quick toggling of these settings.")}</p>"}
             data-tg-group="manage"
           >
+            <div class="grid grid-cols-1 @md:grid-cols-2 space-x-2">
+              <div>
+                <span class="font-semibold text-lg">
+                  <%= gettext("Interaction settings") %>
+                </span>
+
+                <%= case @current_interaction do %>
+                  <% %Claper.Polls.Poll{} -> %>
+                    <button
+                      phx-click="checked"
+                      phx-value-key="poll_visible"
+                      value={"#{!@state.poll_visible}"}
+                      class="py-2 px-2 rounded text-gray-600 bg-gray-100 hover:bg-gray-200 flex justify-center items-center w-full gap-x-3"
+                    >
+                      <svg
+                        :if={@state.poll_visible}
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="h-6 w-6"
+                      >
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 4h1m4 0h13" /><path d="M4 4v10a2 2 0 0 0 2 2h10m3.42 -.592c.359 -.362 .58 -.859 .58 -1.408v-10" /><path d="M12 16v4" /><path d="M9 20h6" /><path d="M8 12l2 -2m4 0l2 -2" /><path d="M3 3l18 18" />
+                      </svg>
+
+                      <svg
+                        :if={!@state.poll_visible}
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="h-6 w-6"
+                      >
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 4l18 0" /><path d="M4 4v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-10" /><path d="M12 16l0 4" /><path d="M9 20l6 0" /><path d="M8 12l3 -3l2 2l3 -3" />
+                      </svg>
+
+                      <span :if={@state.poll_visible}>
+                        <%= gettext("Hide on presentation") %>
+                      </span>
+                      <span :if={!@state.poll_visible}>
+                        <%= gettext("Show on presentation") %>
+                      </span>
+                    </button>
+                  <% %Claper.Quizzes.Quiz{} -> %>
+                    <button
+                      phx-click="checked"
+                      phx-value-key="quiz_show_results"
+                      value={"#{!@current_interaction.show_results}"}
+                      class="py-2 px-2 rounded text-gray-600 bg-gray-100 hover:bg-gray-200 flex justify-center items-center w-full gap-x-3"
+                    >
+                      <svg
+                        :if={@current_interaction.show_results}
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="h-6 w-6"
+                      >
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 4h1m4 0h13" /><path d="M4 4v10a2 2 0 0 0 2 2h10m3.42 -.592c.359 -.362 .58 -.859 .58 -1.408v-10" /><path d="M12 16v4" /><path d="M9 20h6" /><path d="M8 12l2 -2m4 0l2 -2" /><path d="M3 3l18 18" />
+                      </svg>
+
+                      <svg
+                        :if={!@current_interaction.show_results}
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="h-6 w-6"
+                      >
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 4l18 0" /><path d="M4 4v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-10" /><path d="M12 16l0 4" /><path d="M9 20l6 0" /><path d="M8 12l3 -3l2 2l3 -3" />
+                      </svg>
+
+                      <span :if={@current_interaction.show_results}>
+                        <%= gettext("Hide results on presentation") %>
+                      </span>
+                      <span :if={!@current_interaction.show_results}>
+                        <%= gettext("Show results on presentation") %>
+                      </span>
+                    </button>
+                  <% nil -> %>
+                    <p>No interaction enabled</p>
+                  <% _ -> %>
+                    <p>No settings available for this interaction</p>
+                <% end %>
+
+                <div class="flex space-x-2 items-center mt-3"></div>
+              </div>
+            </div>
+
             <.live_component
               id="settings-pane"
               module={ClaperWeb.EventLive.ManagerSettingsComponent}

@@ -26,5 +26,17 @@ defmodule Claper.Quizzes.QuizQuestion do
       sort_param: :quiz_question_opts_order,
       drop_param: :quiz_question_opts_delete
     )
+    |> validate_at_least_one_correct_opt()
+  end
+
+  defp validate_at_least_one_correct_opt(changeset) do
+    quiz_question_opts = get_field(changeset, :quiz_question_opts) || []
+    has_correct_opt = Enum.any?(quiz_question_opts, & &1.is_correct)
+
+    if has_correct_opt do
+      changeset
+    else
+      add_error(changeset, :quiz_question_opts, "must have at least one correct answer")
+    end
   end
 end
