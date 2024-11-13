@@ -100,6 +100,7 @@
           create={@create}
           state={@state}
           show_shortcut={false}
+          current_interaction={@current_interaction}
         />
       </div>
     </div>
@@ -1401,111 +1402,14 @@
           </div>
 
           <div
-            class="hidden md:block px-5 py-3 z-20 bg-white @container"
+            class="hidden md:block z-20 bg-white @container"
             data-tg-title={"#{gettext("Settings")}"}
             data-tg-order="3"
             data-tg-tour={"<p class='mb-3'>#{gettext("You can control each setting for the presentation (showing on the big screen) and on the attendee's room.")}</p><p class='opacity-50 text-xs'>#{gettext("Use the associated keyboard shortcuts for quick toggling of these settings.")}</p>"}
             data-tg-group="manage"
           >
-            <div class="grid grid-cols-1 @md:grid-cols-2 space-x-2">
-              <div>
-                <span class="font-semibold text-lg">
-                  <%= gettext("Interaction settings") %>
-                </span>
-
-                <%= case @current_interaction do %>
-                  <% %Claper.Polls.Poll{} -> %>
-                    <button
-                      phx-click="checked"
-                      phx-value-key="poll_visible"
-                      value={"#{!@state.poll_visible}"}
-                      class="py-2 px-2 rounded text-gray-600 bg-gray-100 hover:bg-gray-200 flex justify-center items-center w-full gap-x-3"
-                    >
-                      <svg
-                        :if={@state.poll_visible}
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="h-6 w-6"
-                      >
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 4h1m4 0h13" /><path d="M4 4v10a2 2 0 0 0 2 2h10m3.42 -.592c.359 -.362 .58 -.859 .58 -1.408v-10" /><path d="M12 16v4" /><path d="M9 20h6" /><path d="M8 12l2 -2m4 0l2 -2" /><path d="M3 3l18 18" />
-                      </svg>
-
-                      <svg
-                        :if={!@state.poll_visible}
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="h-6 w-6"
-                      >
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 4l18 0" /><path d="M4 4v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-10" /><path d="M12 16l0 4" /><path d="M9 20l6 0" /><path d="M8 12l3 -3l2 2l3 -3" />
-                      </svg>
-
-                      <span :if={@state.poll_visible}>
-                        <%= gettext("Hide on presentation") %>
-                      </span>
-                      <span :if={!@state.poll_visible}>
-                        <%= gettext("Show on presentation") %>
-                      </span>
-                    </button>
-                  <% %Claper.Quizzes.Quiz{} -> %>
-                    <button
-                      phx-click="checked"
-                      phx-value-key="quiz_show_results"
-                      value={"#{!@current_interaction.show_results}"}
-                      class="py-2 px-2 rounded text-gray-600 bg-gray-100 hover:bg-gray-200 flex justify-center items-center w-full gap-x-3"
-                    >
-                      <svg
-                        :if={@current_interaction.show_results}
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="h-6 w-6"
-                      >
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 4h1m4 0h13" /><path d="M4 4v10a2 2 0 0 0 2 2h10m3.42 -.592c.359 -.362 .58 -.859 .58 -1.408v-10" /><path d="M12 16v4" /><path d="M9 20h6" /><path d="M8 12l2 -2m4 0l2 -2" /><path d="M3 3l18 18" />
-                      </svg>
-
-                      <svg
-                        :if={!@current_interaction.show_results}
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="h-6 w-6"
-                      >
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 4l18 0" /><path d="M4 4v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-10" /><path d="M12 16l0 4" /><path d="M9 20l6 0" /><path d="M8 12l3 -3l2 2l3 -3" />
-                      </svg>
-
-                      <span :if={@current_interaction.show_results}>
-                        <%= gettext("Hide results on presentation") %>
-                      </span>
-                      <span :if={!@current_interaction.show_results}>
-                        <%= gettext("Show results on presentation") %>
-                      </span>
-                    </button>
-                  <% nil -> %>
-                    <p>No interaction enabled</p>
-                  <% _ -> %>
-                    <p>No settings available for this interaction</p>
-                <% end %>
-
-                <div class="flex space-x-2 items-center mt-3"></div>
-              </div>
+            <div class="w-full h-12 bg-gray-100 font-semibold text-xl flex items-center justify-center">
+              <%= gettext("Settings") %>
             </div>
 
             <.live_component
@@ -1513,6 +1417,7 @@
               module={ClaperWeb.EventLive.ManagerSettingsComponent}
               create={@create}
               state={@state}
+              current_interaction={@current_interaction}
             />
           </div>
         </div>

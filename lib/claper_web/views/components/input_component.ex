@@ -133,6 +133,29 @@ defmodule ClaperWeb.Component.Input do
     """
   end
 
+  def check_button(assigns) do
+    assigns =
+      assigns
+      |> assign_new(:disabled, fn -> false end)
+      |> assign_new(:shortcut, fn -> nil end)
+
+    ~H"""
+    <button
+      phx-click={checked(@checked, @key)}
+      disabled={@disabled}
+      phx-value-key={@key}
+      type="button"
+      class="py-2 px-2 rounded text-gray-600 bg-gray-200 hover:bg-gray-300 flex justify-center items-center w-full gap-x-3 disabled:opacity-50 disabled:cursor-not-allowed"
+      role="switch"
+      aria-checked="false"
+      phx-key={@shortcut}
+      phx-window-keydown={if @shortcut && not @disabled, do: checked(@checked, @key)}
+    >
+      <%= render_slot(@inner_block) %>
+    </button>
+    """
+  end
+
   def checked(is_checked, key, js \\ %JS{})
 
   def checked(false, key, js) do
