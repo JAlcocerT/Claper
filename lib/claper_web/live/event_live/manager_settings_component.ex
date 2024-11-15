@@ -117,7 +117,7 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
               <div>
                 <ClaperWeb.Component.Input.check_button
                   disabled={!@current_interaction.show_results}
-                  key={:review_questions}
+                  key={:review_quiz_questions}
                   checked={true}
                 >
                   <svg
@@ -136,6 +136,51 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
                   <span>
                     <%= gettext("Review results") %>
                   </span>
+                </ClaperWeb.Component.Input.check_button>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <ClaperWeb.Component.Input.check_button
+                  disabled={!@current_interaction.show_results}
+                  key={:prev_quiz_question}
+                  checked={true}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    class="w-6 h-6"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+
+                  <span>
+                    <%= gettext("Previous question") %>
+                  </span>
+                </ClaperWeb.Component.Input.check_button>
+                <ClaperWeb.Component.Input.check_button
+                  disabled={!@current_interaction.show_results}
+                  key={:next_quiz_question}
+                  checked={true}
+                >
+                  <span>
+                    <%= gettext("Next question") %>
+                  </span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    class="w-6 h-6"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
                 </ClaperWeb.Component.Input.check_button>
               </div>
             </div>

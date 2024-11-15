@@ -321,6 +321,59 @@ defmodule ClaperWeb.EventLive.Presenter do
   end
 
   @impl true
+  def handle_info(
+        {:review_quiz_questions},
+        socket
+      ) do
+    send_update(
+      ClaperWeb.EventLive.ManageableQuizComponent,
+      id: "#{socket.assigns.current_quiz.id}-quiz",
+      current_question_idx: 0
+    )
+
+    {:noreply, socket |> assign(:current_question_idx, 0)}
+  end
+
+  @impl true
+  def handle_info(
+        {:next_quiz_question},
+        socket
+      ) do
+    idx =
+      if socket.assigns.current_question_idx <
+           length(socket.assigns.current_quiz.quiz_questions) - 1,
+         do: socket.assigns.current_question_idx + 1,
+         else: -1
+
+    send_update(
+      ClaperWeb.EventLive.ManageableQuizComponent,
+      id: "#{socket.assigns.current_quiz.id}-quiz",
+      current_question_idx: idx
+    )
+
+    {:noreply, socket |> assign(:current_question_idx, idx)}
+  end
+
+  @impl true
+  def handle_info(
+        {:prev_quiz_question},
+        socket
+      ) do
+    idx =
+      if socket.assigns.current_question_idx > 0,
+        do: socket.assigns.current_question_idx - 1,
+        else: 0
+
+    send_update(
+      ClaperWeb.EventLive.ManageableQuizComponent,
+      id: "#{socket.assigns.current_quiz.id}-quiz",
+      current_question_idx: idx
+    )
+
+    {:noreply, socket |> assign(:current_question_idx, idx)}
+  end
+
+  @impl true
   def handle_info(_, socket) do
     {:noreply, socket}
   end
@@ -370,7 +423,7 @@ defmodule ClaperWeb.EventLive.Presenter do
              event.presentation_file.id,
              state.position
            ) do
-      socket |> assign(:current_quiz, quiz)
+      socket |> assign(:current_quiz, quiz) |> assign(:current_question_idx, 0)
     end
   end
 

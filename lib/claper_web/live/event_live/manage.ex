@@ -619,6 +619,39 @@ defmodule ClaperWeb.EventLive.Manage do
   end
 
   @impl true
+  def handle_event("checked", %{"key" => "review_quiz_questions"}, socket) do
+    Phoenix.PubSub.broadcast(
+      Claper.PubSub,
+      "event:#{socket.assigns.event.uuid}",
+      {:review_quiz_questions}
+    )
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("checked", %{"key" => "next_quiz_question"}, socket) do
+    Phoenix.PubSub.broadcast(
+      Claper.PubSub,
+      "event:#{socket.assigns.event.uuid}",
+      {:next_quiz_question}
+    )
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("checked", %{"key" => "prev_quiz_question"}, socket) do
+    Phoenix.PubSub.broadcast(
+      Claper.PubSub,
+      "event:#{socket.assigns.event.uuid}",
+      {:prev_quiz_question}
+    )
+
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     post = Claper.Posts.get_post!(id, [:event])
     {:ok, _} = Claper.Posts.delete_post(post)

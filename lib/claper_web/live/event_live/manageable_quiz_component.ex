@@ -27,13 +27,6 @@ defmodule ClaperWeb.EventLive.ManageableQuizComponent do
           <p class="font-semibold text-7xl">
             <%= Claper.Quizzes.calculate_average_score(@quiz.id) %>/<%= length(@quiz.quiz_questions) %>
           </p>
-          <button
-            phx-target={@myself}
-            phx-click="show_results"
-            class="w-1/2 mx-auto px-3 py-2 text-white text-2xl font-semibold bg-primary-500 hover:bg-primary-600 rounded-md"
-          >
-            <%= gettext("Show results") %>
-          </button>
         </div>
 
         <div
@@ -49,55 +42,9 @@ defmodule ClaperWeb.EventLive.ManageableQuizComponent do
               </div>
             </div>
           <% end %>
-
-          <button
-            :if={
-              @current_question_idx > 0 &&
-                @current_question_idx <= length(@quiz.quiz_questions) - 1
-            }
-            phx-click="prev-question"
-            phx-target={@myself}
-            class="px-3 py-2 text-white font-semibold mt-3 mb-4"
-          >
-            <%= gettext("Back") %>
-          </button>
-
-          <button
-            :if={@current_question_idx <= length(@quiz.quiz_questions) - 1}
-            phx-click="next-question"
-            phx-target={@myself}
-            class="px-3 py-2 text-white font-semibold mt-3 mb-4"
-          >
-            <%= gettext("Next") %>
-          </button>
         </div>
       </div>
     </div>
     """
-  end
-
-  @impl true
-  def handle_event("show_results", _params, socket) do
-    {:noreply, socket |> assign(current_question_idx: 0)}
-  end
-
-  @impl true
-  def handle_event("prev-question", _params, socket) do
-    idx =
-      if socket.assigns.current_question_idx > 0,
-        do: socket.assigns.current_question_idx - 1,
-        else: 0
-
-    {:noreply, socket |> assign(current_question_idx: idx)}
-  end
-
-  @impl true
-  def handle_event("next-question", _params, socket) do
-    idx =
-      if socket.assigns.current_question_idx < length(socket.assigns.quiz.quiz_questions) - 1,
-        do: socket.assigns.current_question_idx + 1,
-        else: -1
-
-    {:noreply, socket |> assign(current_question_idx: idx)}
   end
 end
