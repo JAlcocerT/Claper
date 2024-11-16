@@ -134,7 +134,7 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
                   </svg>
 
                   <span>
-                    <%= gettext("Review results") %>
+                    <%= gettext("Review questions") %>
                   </span>
                 </ClaperWeb.Component.Input.check_button>
               </div>
@@ -158,7 +158,7 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
                   </svg>
 
                   <span>
-                    <%= gettext("Previous question") %>
+                    <%= gettext("Previous") %>
                   </span>
                 </ClaperWeb.Component.Input.check_button>
                 <ClaperWeb.Component.Input.check_button
@@ -167,7 +167,7 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
                   checked={true}
                 >
                   <span>
-                    <%= gettext("Next question") %>
+                    <%= gettext("Next") %>
                   </span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

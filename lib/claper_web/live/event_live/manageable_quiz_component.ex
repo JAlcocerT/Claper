@@ -15,8 +15,11 @@ defmodule ClaperWeb.EventLive.ManageableQuizComponent do
       class={"#{if @quiz.show_results, do: "opacity-100", else: "opacity-0"} h-full w-full flex flex-col justify-center bg-black bg-opacity-90 absolute z-30 left-1/2 top-1/2 transform -translate-y-1/2 -translate-x-1/2 p-10 transition-opacity"}
     >
       <div class="w-full md:w-1/2 mx-auto h-full">
-        <p class={"#{if @iframe, do: "text-xl mb-12", else: "text-5xl mb-24"} text-white font-bold  text-center"}>
-          <%= @quiz.title %>
+        <p class={"#{if @iframe, do: "text-xl mb-12", else: "text-5xl mb-24"} text-white font-bold text-center"}>
+          <span :if={@current_question_idx < 0}><%= @quiz.title %></span>
+          <span :if={@current_question_idx >= 0}>
+            <%= Enum.at(@quiz.quiz_questions, @current_question_idx).content %>
+          </span>
         </p>
 
         <div
@@ -34,10 +37,10 @@ defmodule ClaperWeb.EventLive.ManageableQuizComponent do
           class={"#{if @iframe, do: "space-y-5", else: "space-y-8"} flex flex-col text-white text-center"}
         >
           <%= for {opt, _idx} <- Enum.with_index(Enum.at(@quiz.quiz_questions, @current_question_idx).quiz_question_opts) do %>
-            <div class={"bg-gray-500 px-3 py-2 rounded-xl flex justify-between items-center relative text-white #{if opt.is_correct, do: "bg-green-600"} #{if not opt.is_correct, do: "bg-red-600"}"}>
+            <div class={"bg-gray-500 px-5 py-5 rounded-xl flex justify-between items-center relative text-white #{if opt.is_correct, do: "bg-green-600"} #{if not opt.is_correct, do: ""}"}>
               <div class="bg-gradient-to-r from-primary-500 to-secondary-500 h-full absolute left-0 transition-all rounded-l-3xl">
               </div>
-              <div class="flex space-x-3 items-center z-10 text-left">
+              <div class="flex space-x-3 items-center z-10 text-left text-3xl">
                 <span class="flex-1 pr-2"><%= opt.content %></span>
               </div>
             </div>
