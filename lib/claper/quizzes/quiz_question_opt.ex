@@ -6,6 +6,7 @@ defmodule Claper.Quizzes.QuizQuestionOpt do
     field :content, :string
     field :is_correct, :boolean, default: false
     field :response_count, :integer, default: 0
+    field :percentage, :float, virtual: true
 
     belongs_to :quiz_question, Claper.Quizzes.QuizQuestion
 

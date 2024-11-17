@@ -867,9 +867,11 @@ defmodule ClaperWeb.EventLive.Show do
   end
 
   defp load_current_interaction(socket, %Quizzes.Quiz{} = interaction, _same_interaction) do
+    quiz = Quizzes.set_percentages(interaction)
+
     socket =
       socket
-      |> assign(:current_interaction, interaction)
+      |> assign(:current_interaction, quiz)
       |> get_current_quiz_reponses(interaction.id)
 
     if length(socket.assigns.current_quiz_responses) > 0 do

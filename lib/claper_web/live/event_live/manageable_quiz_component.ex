@@ -40,8 +40,9 @@ defmodule ClaperWeb.EventLive.ManageableQuizComponent do
             <div class={"bg-gray-500 px-5 py-5 rounded-xl flex justify-between items-center relative text-white #{if opt.is_correct, do: "bg-green-600"} #{if not opt.is_correct, do: ""}"}>
               <div class="bg-gradient-to-r from-primary-500 to-secondary-500 h-full absolute left-0 transition-all rounded-l-3xl">
               </div>
-              <div class="flex space-x-3 items-center z-10 text-left text-3xl">
-                <span class="flex-1 pr-2"><%= opt.content %></span>
+              <div class="flex space-x-3 justify-between w-full items-center z-10 text-left">
+                <span class="flex-1 pr-2 text-3xl"><%= opt.content %></span>
+                <span class="text-xl"><%= opt.percentage %>% (<%= opt.response_count %>)</span>
               </div>
             </div>
           <% end %>

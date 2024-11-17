@@ -73,14 +73,18 @@ defmodule ClaperWeb.EventLive.QuizComponent do
               <%= for {opt, _idx} <- Enum.with_index(@current_question.quiz_question_opts) do %>
                 <%= if @is_submitted do %>
                   <div class={"bg-gray-500 px-3 py-2 rounded-lg flex justify-between items-center relative text-white #{if opt.is_correct, do: "bg-green-600"} #{if not opt.is_correct && Enum.member?(Enum.map(@current_quiz_responses, &(&1.quiz_question_opt_id)), opt.id), do: "bg-red-600"}"}>
-                    <div class="flex space-x-3 items-center z-10 text-left">
-                      <%= if Enum.member?(Enum.map(@current_quiz_responses, &(&1.quiz_question_opt_id)), opt.id) do %>
-                        <span class="h-5 w-5 mt-0.5 rounded-md point-select bg-white"></span>
-                      <% else %>
-                        <span class="h-5 w-5 mt-0.5 rounded-md point-select border-2 border-white">
-                        </span>
-                      <% end %>
-                      <span class="flex-1 pr-2"><%= opt.content %></span>
+                    <div class="flex justify-between items-center z-10 text-left w-full">
+                      <div class="flex items-center text-left space-x-3">
+                        <%= if Enum.member?(Enum.map(@current_quiz_responses, &(&1.quiz_question_opt_id)), opt.id) do %>
+                          <div class="h-5 w-5 mt-0.5 rounded-md point-select bg-white"></div>
+                        <% else %>
+                          <div class="h-5 w-5 mt-0.5 rounded-md point-select border-2 border-white">
+                          </div>
+                        <% end %>
+                        <span class="flex-1 pr-2"><%= opt.content %></span>
+                      </div>
+
+                      <span class="text-sm"><%= opt.percentage %>% (<%= opt.response_count %>)</span>
                     </div>
                   </div>
                 <% else %>

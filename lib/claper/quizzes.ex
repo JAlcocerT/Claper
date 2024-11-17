@@ -65,6 +65,7 @@ defmodule Claper.Quizzes do
     Quiz
     |> Repo.get!(id)
     |> Repo.preload(preload)
+    |> set_percentages()
   end
 
   @doc """
@@ -84,6 +85,7 @@ defmodule Claper.Quizzes do
     )
     |> Repo.one()
     |> Repo.preload([:quiz_questions, quiz_questions: :quiz_question_opts])
+    |> set_percentages()
   end
 
   @doc """
@@ -410,6 +412,58 @@ defmodule Claper.Quizzes do
         avg = Enum.sum(scores) / n
         if avg == trunc(avg), do: trunc(avg), else: avg
     end
+  end
+
+  @doc """
+  Calculate percentage of all quiz questions for a given quiz.
+
+  ## Examples
+
+      iex> set_percentages(quiz)
+      %Quiz{}
+
+  """
+  def set_percentages(%Quiz{quiz_questions: quiz_questions} = quiz)
+      when is_list(quiz_questions) do
+    %{
+      quiz
+      | quiz_questions: Enum.map(quiz_questions, &set_question_percentages/1)
+    }
+  end
+
+  def set_percentages(quiz), do: quiz
+
+  @doc """
+  Calculate percentage of all quiz question options for a given quiz.
+
+  ## Examples
+
+      iex> set_question_percentages(quiz)
+      %Quiz{}
+
+  """
+  def set_question_percentages(
+        %QuizQuestion{quiz_question_opts: quiz_question_opts} =
+          quiz_question
+      )
+      when is_list(quiz_question_opts) do
+    total =
+      Enum.map(quiz_question.quiz_question_opts, fn o -> o.response_count end) |> Enum.sum()
+
+    %{
+      quiz_question
+      | quiz_question_opts:
+          quiz_question.quiz_question_opts
+          |> Enum.map(fn o -> %{o | percentage: calculate_percentage(o, total)} end)
+    }
+  end
+
+  def set_question_percentages(quiz_question), do: quiz_question
+
+  defp calculate_percentage(opt, total) do
+    if total > 0,
+      do: Float.round(opt.response_count / total * 100) |> :erlang.float_to_binary(decimals: 0),
+      else: 0
   end
 
   @doc """

@@ -423,7 +423,8 @@ defmodule ClaperWeb.EventLive.Manage do
 
   @impl true
   def handle_event("quiz-set-active", %{"id" => id}, socket) do
-    with quiz <- Quizzes.get_quiz!(id), :ok <- Claper.Interactions.enable_interaction(quiz) do
+    with quiz <- Quizzes.get_quiz!(id, [:quiz_questions, quiz_questions: :quiz_question_opts]),
+         :ok <- Claper.Interactions.enable_interaction(quiz) do
       Phoenix.PubSub.broadcast(
         Claper.PubSub,
         "event:#{socket.assigns.event.uuid}",
