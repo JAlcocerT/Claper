@@ -70,6 +70,7 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
                 >
                   z
                 </code>
+                <div :if={!@show_shortcut}></div>
               </ClaperWeb.Component.Input.check_button>
             </div>
           <% %Claper.Quizzes.Quiz{} -> %>
@@ -113,9 +114,13 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
                 <span :if={!@current_interaction.show_results}>
                   <%= gettext("Show results on presentation") %>
                 </span>
-                <code class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">
+                <code
+                  :if={@show_shortcut}
+                  class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg"
+                >
                   z
                 </code>
+                <div :if={!@show_shortcut}></div>
               </ClaperWeb.Component.Input.check_button>
               <div>
                 <ClaperWeb.Component.Input.check_button
@@ -259,6 +264,7 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
               >
                 q
               </code>
+              <div :if={!@show_shortcut}></div>
             </ClaperWeb.Component.Input.check_button>
           </div>
 
@@ -304,6 +310,7 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
               >
                 w
               </code>
+              <div :if={!@show_shortcut}></div>
             </ClaperWeb.Component.Input.check_button>
           </div>
 
@@ -359,6 +366,7 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
               >
                 e
               </code>
+              <div :if={!@show_shortcut}></div>
             </ClaperWeb.Component.Input.check_button>
           </div>
         </div>
@@ -383,20 +391,49 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
           </div>
 
           <div class="flex space-x-2 items-center mt-3">
-            <ClaperWeb.Component.Input.check
+            <ClaperWeb.Component.Input.check_button
               key={:chat_enabled}
               checked={@state.chat_enabled}
               shortcut={if @create == nil, do: "A", else: nil}
-            />
-            <span>
-              <%= gettext("Enable messages") %>
+            >
+              <svg
+                :if={!@state.chat_enabled}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-5 h-5"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M8 9h8" /><path d="M8 13h6" /><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12z" />
+              </svg>
+              <svg
+                :if={@state.chat_enabled}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-5 h-5"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M8 9h1m4 0h3" /><path d="M8 13h5" /><path d="M8 4h10a3 3 0 0 1 3 3v8c0 .577 -.163 1.116 -.445 1.573m-2.555 1.427h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8c0 -1.085 .576 -2.036 1.439 -2.562" /><path d="M3 3l18 18" />
+              </svg>
+              <div>
+                <span :if={!@state.chat_enabled}><%= gettext("Enable messages") %></span>
+                <span :if={@state.chat_enabled}><%= gettext("Disable messages") %></span>
+              </div>
               <code
                 :if={@show_shortcut}
                 class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg"
               >
                 a
               </code>
-            </span>
+              <div :if={!@show_shortcut}></div>
+            </ClaperWeb.Component.Input.check_button>
           </div>
 
           <div
@@ -407,38 +444,106 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
                 else: nil
             }
           >
-            <ClaperWeb.Component.Input.check
+            <ClaperWeb.Component.Input.check_button
               key={:anonymous_chat_enabled}
               checked={@state.anonymous_chat_enabled}
               disabled={!@state.chat_enabled}
               shortcut={if @create == nil, do: "S", else: nil}
-            />
-            <span>
-              <%= gettext("Enable anonymous messages") %>
+            >
+              <svg
+                :if={!@state.anonymous_chat_enabled}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-5 h-5"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 11h18" /><path d="M5 11v-4a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v4" /><path d="M7 17m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M17 17m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M10 17h4" />
+              </svg>
+              <svg
+                :if={@state.anonymous_chat_enabled}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-5 h-5"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 11h8m4 0h6" /><path d="M5 11v-4c0 -.571 .16 -1.105 .437 -1.56m2.563 -1.44h8a3 3 0 0 1 3 3v4" /><path d="M7 17m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /><path d="M14.88 14.877a3 3 0 1 0 4.239 4.247m.59 -3.414a3.012 3.012 0 0 0 -1.425 -1.422" /><path d="M10 17h4" /><path d="M3 3l18 18" />
+              </svg>
+
+              <div>
+                <span :if={!@state.anonymous_chat_enabled}>
+                  <%= gettext("Allow anonymous messages") %>
+                </span>
+                <span :if={@state.anonymous_chat_enabled}>
+                  <%= gettext("Deny anonymous messages") %>
+                </span>
+              </div>
               <code
                 :if={@show_shortcut}
                 class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg"
               >
                 s
               </code>
-            </span>
+              <div :if={!@show_shortcut}></div>
+            </ClaperWeb.Component.Input.check_button>
           </div>
 
           <div class="flex space-x-2 items-center mt-3">
-            <ClaperWeb.Component.Input.check
+            <ClaperWeb.Component.Input.check_button
               key={:message_reaction_enabled}
               checked={@state.message_reaction_enabled}
               shortcut={if @create == nil, do: "D", else: nil}
-            />
-            <span>
-              <%= gettext("Enable reactions") %>
+            >
+              <svg
+                :if={!@state.message_reaction_enabled}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-5 h-5"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" />
+              </svg>
+              <svg
+                :if={@state.message_reaction_enabled}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-5 h-5"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M3 3l18 18" /><path d="M19.5 12.572l-1.5 1.428m-2 2l-4 4l-7.5 -7.428a5 5 0 0 1 -1.288 -5.068a4.976 4.976 0 0 1 1.788 -2.504m3 -1c1.56 0 3.05 .727 4 2a5 5 0 1 1 7.5 6.572" />
+              </svg>
+
+              <div>
+                <span :if={!@state.message_reaction_enabled}>
+                  <%= gettext("Enable reactions") %>
+                </span>
+                <span :if={@state.message_reaction_enabled}>
+                  <%= gettext("Disable reactions") %>
+                </span>
+              </div>
               <code
                 :if={@show_shortcut}
                 class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg"
               >
                 d
               </code>
-            </span>
+              <div :if={!@show_shortcut}></div>
+            </ClaperWeb.Component.Input.check_button>
           </div>
         </div>
       </div>
