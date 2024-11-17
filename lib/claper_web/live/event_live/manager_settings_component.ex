@@ -64,7 +64,10 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
                 <span :if={!@state.poll_visible}>
                   <%= gettext("Show results on presentation") %>
                 </span>
-                <code class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">
+                <code
+                  :if={@show_shortcut}
+                  class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg"
+                >
                   z
                 </code>
               </ClaperWeb.Component.Input.check_button>
@@ -118,7 +121,6 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
                 <ClaperWeb.Component.Input.check_button
                   disabled={!@current_interaction.show_results}
                   key={:review_quiz_questions}
-                  checked={true}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -136,13 +138,13 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
                   <span>
                     <%= gettext("Review questions") %>
                   </span>
+                  <div></div>
                 </ClaperWeb.Component.Input.check_button>
               </div>
               <div class="grid grid-cols-2 gap-2">
                 <ClaperWeb.Component.Input.check_button
                   disabled={!@current_interaction.show_results}
                   key={:prev_quiz_question}
-                  checked={true}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -164,7 +166,6 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
                 <ClaperWeb.Component.Input.check_button
                   disabled={!@current_interaction.show_results}
                   key={:next_quiz_question}
-                  checked={true}
                 >
                   <span>
                     <%= gettext("Next") %>
@@ -211,38 +212,99 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
             <span><%= gettext("Presentation") %></span>
           </div>
 
-          <div class="flex space-x-2 items-center mt-3">
-            <ClaperWeb.Component.Input.check
+          <div class="flex space-x-1 items-center mt-3">
+            <ClaperWeb.Component.Input.check_button
               key={:join_screen_visible}
               checked={@state.join_screen_visible}
               shortcut={if @create == nil, do: "Q", else: nil}
-            />
-            <span>
-              <%= gettext("Show instructions (QR Code)") %>
+            >
+              <svg
+                :if={!@state.join_screen_visible}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-5 h-5"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M4 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z" /><path d="M7 17l0 .01" /><path d="M14 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z" /><path d="M7 7l0 .01" /><path d="M4 14m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z" /><path d="M17 7l0 .01" /><path d="M14 14l3 0" /><path d="M20 14l0 .01" /><path d="M14 14l0 3" /><path d="M14 20l3 0" /><path d="M17 17l3 0" /><path d="M20 17l0 3" />
+              </svg>
+
+              <svg
+                :if={@state.join_screen_visible}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-5 h-5"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M8 4h1a1 1 0 0 1 1 1v1m-.297 3.711a1 1 0 0 1 -.703 .289h-4a1 1 0 0 1 -1 -1v-4c0 -.275 .11 -.524 .29 -.705" /><path d="M7 17v.01" /><path d="M14 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z" /><path d="M7 7v.01" /><path d="M4 14m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z" /><path d="M17 7v.01" /><path d="M20 14v.01" /><path d="M14 14v3" /><path d="M14 20h3" /><path d="M3 3l18 18" />
+              </svg>
+              <div>
+                <span :if={!@state.join_screen_visible}>
+                  <%= gettext("Show instructions to join") %>
+                </span>
+                <span :if={@state.join_screen_visible}>
+                  <%= gettext("Hide instructions to join") %>
+                </span>
+              </div>
               <code
                 :if={@show_shortcut}
                 class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg"
               >
                 q
               </code>
-            </span>
+            </ClaperWeb.Component.Input.check_button>
           </div>
 
           <div class="flex space-x-2 items-center mt-3">
-            <ClaperWeb.Component.Input.check
+            <ClaperWeb.Component.Input.check_button
               key={:chat_visible}
               checked={@state.chat_visible}
               shortcut={if @create == nil, do: "W", else: nil}
-            />
-            <span>
-              <%= gettext("Show messages") %>
+            >
+              <svg
+                :if={!@state.chat_visible}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-5 h-5"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M8 9h8" /><path d="M8 13h6" /><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12z" />
+              </svg>
+              <svg
+                :if={@state.chat_visible}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-5 h-5"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M8 9h1m4 0h3" /><path d="M8 13h5" /><path d="M8 4h10a3 3 0 0 1 3 3v8c0 .577 -.163 1.116 -.445 1.573m-2.555 1.427h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8c0 -1.085 .576 -2.036 1.439 -2.562" /><path d="M3 3l18 18" />
+              </svg>
+              <div>
+                <span :if={!@state.chat_visible}><%= gettext("Show messages") %></span>
+                <span :if={@state.chat_visible}><%= gettext("Hide messages") %></span>
+              </div>
               <code
                 :if={@show_shortcut}
                 class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg"
               >
                 w
               </code>
-            </span>
+            </ClaperWeb.Component.Input.check_button>
           </div>
 
           <div
@@ -253,21 +315,51 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
                 else: nil
             }
           >
-            <ClaperWeb.Component.Input.check
+            <ClaperWeb.Component.Input.check_button
               key={:show_only_pinned}
               checked={@state.show_only_pinned}
               disabled={!@state.chat_visible}
               shortcut={if @create == nil, do: "E", else: nil}
-            />
-            <span>
-              <%= gettext("Show only pinned messages") %>
+            >
+              <svg
+                :if={!@state.show_only_pinned}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-5 h-5"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M8 9h8" /><path d="M8 13h4.5" /><path d="M10.325 19.605l-2.325 1.395v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v4.5" /><path d="M17.8 20.817l-2.172 1.138a.392 .392 0 0 1 -.568 -.41l.415 -2.411l-1.757 -1.707a.389 .389 0 0 1 .217 -.665l2.428 -.352l1.086 -2.193a.392 .392 0 0 1 .702 0l1.086 2.193l2.428 .352a.39 .39 0 0 1 .217 .665l-1.757 1.707l.414 2.41a.39 .39 0 0 1 -.567 .411l-2.172 -1.138z" />
+              </svg>
+              <svg
+                :if={@state.show_only_pinned}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="w-5 h-5"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M8 9h8" /><path d="M8 13h6" /><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12z" />
+              </svg>
+              <div>
+                <span :if={!@state.show_only_pinned}>
+                  <%= gettext("Show only pinned messages") %>
+                </span>
+                <span :if={@state.show_only_pinned}><%= gettext("Show all messages") %></span>
+              </div>
               <code
                 :if={@show_shortcut}
                 class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg"
               >
                 e
               </code>
-            </span>
+            </ClaperWeb.Component.Input.check_button>
           </div>
         </div>
 
