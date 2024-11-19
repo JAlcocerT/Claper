@@ -386,6 +386,7 @@ defmodule Claper.Events do
                 polls: [:poll_opts],
                 forms: [],
                 embeds: [],
+                quizzes: [:quiz_questions, quiz_questions: :quiz_question_opts],
                 presentation_state: []
               ]
             )}
@@ -489,6 +490,37 @@ defmodule Claper.Events do
 
               {:ok, new_embed} = Claper.Embeds.create_embed(embed_attrs)
               new_embed
+            end)}
+         end)
+         |> Ecto.Multi.run(:quizzes, fn _repo,
+                                        %{
+                                          new_presentation_file: new_presentation_file,
+                                          original_event: original_event
+                                        } ->
+           {:ok,
+            Enum.map(original_event.presentation_file.quizzes, fn quiz ->
+              quiz_attrs =
+                Map.from_struct(quiz)
+                |> Map.drop([:id, :inserted_at, :updated_at])
+                |> Map.put(:presentation_file_id, new_presentation_file.id)
+                |> Map.put(
+                  :quiz_questions,
+                  Enum.map(quiz.quiz_questions, fn question ->
+                    Map.from_struct(question)
+                    |> Map.drop([:id, :inserted_at, :updated_at])
+                    |> Map.put(
+                      :quiz_question_opts,
+                      Enum.map(question.quiz_question_opts, fn opt ->
+                        Map.from_struct(opt)
+                        |> Map.drop([:id, :inserted_at, :updated_at])
+                        |> Map.put(:response_count, 0)
+                      end)
+                    )
+                  end)
+                )
+
+              {:ok, new_quiz} = Claper.Quizzes.create_quiz(quiz_attrs)
+              new_quiz
             end)}
          end)
          |> Repo.transaction() do
