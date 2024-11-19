@@ -24,7 +24,7 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
 
         <%= case @current_interaction do %>
           <% %Claper.Polls.Poll{} -> %>
-            <div class="flex space-x-2 items-center mt-3">
+            <div class="flex space-x-2 space-y-1.5 items-center mt-1.5">
               <ClaperWeb.Component.Input.check_button
                 key={:poll_visible}
                 checked={@state.poll_visible}
@@ -74,7 +74,7 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
               </ClaperWeb.Component.Input.check_button>
             </div>
           <% %Claper.Quizzes.Quiz{} -> %>
-            <div class="grid grid-cols-1 space-y-2 items-center mt-3">
+            <div class="grid grid-cols-1 space-y-1.5 items-center mt-1.5">
               <ClaperWeb.Component.Input.check_button
                 key={:quiz_show_results}
                 checked={@current_interaction.show_results}
@@ -191,15 +191,15 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
               </div>
             </div>
           <% nil -> %>
-            <p class="text-gray-400 italic mt-2">No interaction enabled</p>
+            <p class="text-gray-400 italic mt-1.5">No interaction enabled</p>
           <% _ -> %>
-            <p class="text-gray-400 italic mt-2">No settings available for this interaction</p>
+            <p class="text-gray-400 italic mt-1.5">No settings available for this interaction</p>
         <% end %>
 
         <div class="flex space-x-2 items-center mt-3"></div>
       </div>
       <div class="grid grid-cols-1 space-y-5">
-        <div>
+        <div class="grid grid-cols-1 space-y-1.5">
           <div class="flex items-center space-x-2 font-semibold text-lg">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -371,7 +371,7 @@ defmodule ClaperWeb.EventLive.ManagerSettingsComponent do
           </div>
         </div>
 
-        <div>
+        <div class="grid grid-cols-1 space-y-1.5">
           <div class="flex items-center space-x-2 font-semibold text-lg">
             <svg
               xmlns="http://www.w3.org/2000/svg"
