@@ -22,7 +22,7 @@ defmodule Claper.Events.Event do
     field :uuid, :binary_id
     field :name, :string
     field :code, :string
-    field :audience_peak, :integer, default: 1
+    field :audience_peak, :integer, default: 0
     field :started_at, :naive_datetime
     field :expired_at, :naive_datetime
 

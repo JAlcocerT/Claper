@@ -2,7 +2,7 @@ defmodule ClaperWeb.EventLive.Show do
   alias Claper.Interactions
   use ClaperWeb, :live_view
 
-  alias Claper.{Posts, Polls, Forms, Quizzes}
+  alias Claper.{Posts, Polls, Forms, Quizzes, Stats}
   alias ClaperWeb.Presence
 
   on_mount(ClaperWeb.AttendeeLiveAuth)
@@ -63,13 +63,13 @@ defmodule ClaperWeb.EventLive.Show do
         socket.assigns.attendee_identifier,
         %{}
       )
+
+      online = Presence.list("event:#{event.uuid}") |> Enum.count()
+      update_stats(socket, event)
+      maybe_update_audience_peak(event, online)
     end
 
     post_changeset = Posts.Post.changeset(%Posts.Post{}, %{})
-
-    online = Presence.list("event:#{event.uuid}") |> Enum.count()
-
-    maybe_update_audience_peak(event, online)
 
     posts = list_posts(socket, event.uuid)
 
@@ -892,5 +892,17 @@ defmodule ClaperWeb.EventLive.Show do
 
   defp maybe_reset_selected_poll_opt(socket, _same_interaction) do
     socket |> assign(:selected_poll_opt, [])
+  end
+
+  defp update_stats(%{assigns: %{current_user: current_user}}, event) when is_map(current_user) do
+    Stats.create_stat(event, %{
+      user_id: current_user.id
+    })
+  end
+
+  defp update_stats(%{assigns: %{attendee_identifier: attendee_identifier}}, event) do
+    Stats.create_stat(event, %{
+      attendee_identifier: attendee_identifier
+    })
   end
 end
