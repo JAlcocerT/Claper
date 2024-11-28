@@ -29,13 +29,6 @@ defmodule ClaperWeb.EventLive.Manage do
       if connected?(socket) do
         Claper.Events.Event.subscribe(event.uuid)
         Claper.Presentations.subscribe(event.presentation_file.id)
-
-        Presence.track(
-          self(),
-          "event:#{event.uuid}",
-          socket.assigns.current_user.id,
-          %{}
-        )
       end
 
       posts = list_all_posts(socket, event.uuid)
