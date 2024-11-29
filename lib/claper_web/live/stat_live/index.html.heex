@@ -169,135 +169,123 @@
     <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
       <%= gettext("Interactions history") %>
     </h3>
-    <%= for position <- 0..max(0, @event.presentation_file.length-1) do %>
-      <div class="my-10">
-        <%= if @event.presentation_file.length > 0 do %>
-          <%= if Application.get_env(:claper, :presentations) |> Keyword.get(:storage) == "local" do %>
-            <img
-              class="w-1/3 mx-auto"
-              src={"/uploads/#{@event.presentation_file.hash}/#{position+1}.jpg"}
-            />
-          <% else %>
-            <img
-              class="w-1/2 md:w-1/3 mb-4"
-              src={"https://#{Application.get_env(:claper, :presentations) |> Keyword.get(:aws_bucket)}.s3.#{Application.get_env(:ex_aws, :region)}.amazonaws.com/presentations/#{@event.presentation_file.hash}/#{position+1}.jpg"}
-            />
-          <% end %>
+    <div class="my-10">
+      <%= for poll <- @event.presentation_file.polls do %>
+        <%= link to: ~p"/export/polls/#{poll.id}", class: "text-xs text-white bg-primary-500 rounded-md px-2 py-0.5", method: :post do %>
+          <%= gettext("Export all poll responses") %>
         <% end %>
-
-        <%= for poll <- Enum.filter(@event.presentation_file.polls, fn p -> p.position == position end) do %>
-          <% total = Enum.map(poll.poll_opts, fn e -> e.vote_count end) |> Enum.sum() %>
-          <div class="bg-black w-full py-3 px-6 my-5 text-black shadow-lg rounded-md">
-            <div class="block w-full h-full cursor-pointer">
-              <p class="text-white text-lg font-semibold mb-4"><%= poll.title %></p>
-            </div>
-            <div>
-              <div class="flex flex-col space-y-3">
-                <%= if (length poll.poll_opts) > 0 do %>
-                  <%= for {opt, idx} <- Enum.with_index(poll.poll_opts) do %>
-                    <% percentage =
-                      if total > 0,
-                        do:
-                          Float.round(opt.vote_count / total * 100)
-                          |> :erlang.float_to_binary(decimals: 0),
-                        else: 0 %>
-                    <button
-                      id={"poll-opt-#{idx}"}
-                      class="bg-gray-500 px-3 py-2 rounded-3xl flex justify-between items-center relative text-white"
+        <% total = Enum.map(poll.poll_opts, fn e -> e.vote_count end) |> Enum.sum() %>
+        <div class="bg-black w-full py-3 px-6 my-5 text-black shadow-lg rounded-md">
+          <div class="block w-full h-full cursor-pointer">
+            <p class="text-white text-lg font-semibold mb-4"><%= poll.title %></p>
+          </div>
+          <div>
+            <div class="flex flex-col space-y-3">
+              <%= if (length poll.poll_opts) > 0 do %>
+                <%= for {opt, idx} <- Enum.with_index(poll.poll_opts) do %>
+                  <% percentage =
+                    if total > 0,
+                      do:
+                        Float.round(opt.vote_count / total * 100)
+                        |> :erlang.float_to_binary(decimals: 0),
+                      else: 0 %>
+                  <button
+                    id={"poll-opt-#{idx}"}
+                    class="bg-gray-500 px-3 py-2 rounded-3xl flex justify-between items-center relative text-white"
+                  >
+                    <div
+                      style={"width: #{percentage}%;"}
+                      class={"bg-gradient-to-r from-primary-500 to-secondary-500 h-full absolute left-0 transition-all rounded-l-3xl #{if percentage == "100", do: "rounded-r-3xl"}"}
                     >
-                      <div
-                        style={"width: #{percentage}%;"}
-                        class={"bg-gradient-to-r from-primary-500 to-secondary-500 h-full absolute left-0 transition-all rounded-l-3xl #{if percentage == "100", do: "rounded-r-3xl"}"}
-                      >
-                      </div>
-                      <div class="flex space-x-3 items-center z-10 text-left">
-                        <span class="flex-1 pr-2"><%= opt.content %></span>
-                      </div>
-                      <span class="text-sm z-10"><%= percentage %>% (<%= opt.vote_count %>)</span>
-                    </button>
-                  <% end %>
+                    </div>
+                    <div class="flex space-x-3 items-center z-10 text-left">
+                      <span class="flex-1 pr-2"><%= opt.content %></span>
+                    </div>
+                    <span class="text-sm z-10"><%= percentage %>% (<%= opt.vote_count %>)</span>
+                  </button>
                 <% end %>
-              </div>
+              <% end %>
             </div>
           </div>
+        </div>
+      <% end %>
+
+      <%= for form <- @event.presentation_file.forms do %>
+        <span class="text-xl font-semibold text-gray-900 mb-4">
+          <%= gettext("Form") %>: <%= form.title %>
+        </span>
+
+        <%= if length(form.form_submits) > 0 do %>
+          <%= link to: ~p"/export/forms/#{form.id}", class: "text-xs text-white bg-primary-500 rounded-md px-2 py-0.5", method: :post do %>
+            <%= gettext("Export all submissions") %>
+          <% end %>
         <% end %>
 
-        <% forms = Enum.filter(@event.presentation_file.forms, fn f -> f.position == position end) %>
+        <%= if length(form.form_submits) == 0 do %>
+          <p class="italic text-gray-500"><%= gettext("No form submission has been sent") %></p>
+        <% end %>
 
-        <%= for form <- forms do %>
-          <span class="text-xl font-semibold text-gray-900 mb-4">
-            <%= gettext("Form") %>: <%= form.title %>
-          </span>
+        <%= for fs <- form.form_submits do %>
+          <div id={"#{fs.id}-form"}>
+            <div class="px-4 pb-2 pt-3 rounded-b-lg rounded-tr-lg bg-white relative shadow-md text-black break-all mt-4">
+              <div class="flex space-x-3 items-center">
+                <%= if fs.attendee_identifier do %>
+                  <img
+                    class="h-8 w-8"
+                    src={"https://api.dicebear.com/7.x/personas/svg?seed=#{fs.attendee_identifier}.svg"}
+                  />
+                <% else %>
+                  <img
+                    class="h-8 w-8"
+                    src={"https://api.dicebear.com/7.x/personas/svg?seed=#{fs.user_id}.svg"}
+                  />
+                <% end %>
 
-          <%= if length(form.form_submits) > 0 do %>
-            <%= link to: ~p"/export/#{form.id}", class: "text-xs text-white bg-primary-500 rounded-md px-2 py-0.5", method: :post do %>
-              <%= gettext("Export all submissions") %>
-            <% end %>
-          <% end %>
-
-          <%= if length(form.form_submits) == 0 do %>
-            <p class="italic text-gray-500"><%= gettext("No form submission has been sent") %></p>
-          <% end %>
-
-          <%= for fs <- form.form_submits do %>
-            <div id={"#{fs.id}-form"}>
-              <div class="px-4 pb-2 pt-3 rounded-b-lg rounded-tr-lg bg-white relative shadow-md text-black break-all mt-4">
-                <div class="flex space-x-3 items-center">
-                  <%= if fs.attendee_identifier do %>
-                    <img
-                      class="h-8 w-8"
-                      src={"https://api.dicebear.com/7.x/personas/svg?seed=#{fs.attendee_identifier}.svg"}
-                    />
-                  <% else %>
-                    <img
-                      class="h-8 w-8"
-                      src={"https://api.dicebear.com/7.x/personas/svg?seed=#{fs.user_id}.svg"}
-                    />
+                <div>
+                  <%= for res <- fs.response do %>
+                    <p><strong><%= elem(res, 0) %>:</strong> <%= elem(res, 1) %></p>
                   <% end %>
-
-                  <div>
-                    <%= for res <- fs.response do %>
-                      <p><strong><%= elem(res, 0) %>:</strong> <%= elem(res, 1) %></p>
-                    <% end %>
-                  </div>
                 </div>
               </div>
             </div>
-          <% end %>
-        <% end %>
-
-        <%= for embed <- Enum.filter(@event.presentation_file.embeds , fn e -> e.position == position end) do %>
-          <span class="text-xl font-semibold text-gray-900 mb-4">
-            <%= gettext("Web content") %>: <%= embed.title %>
-          </span>
-          <div class="px-4 pb-2 pt-3 rounded-b-lg rounded-tr-lg bg-white relative shadow-md text-black break-all mt-4">
-            <div class="flex space-x-3 items-center">
-              <%= raw(embed.content) %>
-            </div>
           </div>
         <% end %>
+      <% end %>
 
-        <% posts = Enum.filter(@posts, fn p -> p.position == position end) %>
-
+      <%= for embed <- @event.presentation_file.embeds do %>
         <span class="text-xl font-semibold text-gray-900 mb-4">
-          <%= gettext("Messages") %>
+          <%= gettext("Web content") %>: <%= embed.title %>
         </span>
-
-        <%= if length(posts) == 0 do %>
-          <p class="italic text-gray-500"><%= gettext("No messages has been sent") %></p>
-        <% end %>
-
-        <div class="h-64 pb-5 px-2 overflow-y-auto">
-          <.live_component
-            :for={post <- posts}
-            module={ClaperWeb.EventLive.ManageablePostComponent}
-            readonly={true}
-            id={post.uuid}
-            event={@event}
-            post={post}
-          />
+        <div class="px-4 pb-2 pt-3 rounded-b-lg rounded-tr-lg bg-white relative shadow-md text-black break-all mt-4">
+          <div class="flex space-x-3 items-center">
+            <%= raw(embed.content) %>
+          </div>
         </div>
+      <% end %>
+
+      <span class="text-xl font-semibold text-gray-900 mb-4">
+        <%= gettext("Messages") %>
+      </span>
+      <%= if length(@posts) > 0 do %>
+        <%= link to: ~p"/export/#{@event.uuid}/messages", class: "text-xs text-white bg-primary-500 rounded-md px-2 py-0.5", method: :post do %>
+          <%= gettext("Export all messages") %>
+        <% end %>
+      <% end %>
+
+      <%= if length(@posts) == 0 do %>
+        <p class="italic text-gray-500"><%= gettext("No messages has been sent") %></p>
+      <% end %>
+
+      <div class="h-64 pb-5 px-2 overflow-y-auto">
+        <.live_component
+          :for={post <- @posts}
+          module={ClaperWeb.EventLive.ManageablePostComponent}
+          readonly={true}
+          id={post.uuid}
+          event={@event}
+          post={post}
+        />
       </div>
-    <% end %>
+    </div>
   </div>
 </div>

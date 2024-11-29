@@ -13,7 +13,12 @@ defmodule ClaperWeb.StatLive.Index do
 
     event =
       Events.get_managed_event!(socket.assigns.current_user, id,
-        presentation_file: [polls: [:poll_opts], forms: [:form_submits], embeds: []]
+        presentation_file: [
+          polls: [:poll_opts],
+          forms: [:form_submits],
+          embeds: [],
+          quizzes: [:quiz_questions, quiz_questions: :quiz_question_opts]
+        ]
       )
 
     distinct_attendee_count = Claper.Stats.get_unique_attendees_for_event(event.id)

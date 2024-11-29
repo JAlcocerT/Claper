@@ -51,7 +51,9 @@ defmodule ClaperWeb.Router do
     scope "/", ClaperWeb do
       pipe_through([:browser, :require_authenticated_user])
 
-      post "/export/:form_id", StatController, :export
+      post "/export/forms/:form_id", StatController, :export_form
+      post "/export/polls/:poll_id", StatController, :export_poll
+      post "/export/:event_id/messages", StatController, :export_all_messages
 
       live("/events", EventLive.Index, :index)
       live("/events/new", EventLive.Index, :new)
