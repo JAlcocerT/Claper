@@ -21,6 +21,15 @@ defmodule ClaperWeb.StatLive.Index do
         ]
       )
 
+    # Calculate percentages for each quiz
+    event = %{
+      event
+      | presentation_file: %{
+          event.presentation_file
+          | quizzes: Enum.map(event.presentation_file.quizzes, &Claper.Quizzes.set_percentages/1)
+        }
+    }
+
     distinct_attendee_count = Claper.Stats.get_unique_attendees_for_event(event.id)
     distinct_poster_count = Claper.Stats.distinct_poster_count(event.id)
 
@@ -39,7 +48,8 @@ defmodule ClaperWeb.StatLive.Index do
        :engagement_rate,
        calculate_engagement_rate(event, distinct_attendee_count)
      )
-     |> assign(:posts, list_posts(socket, event.uuid))}
+     |> assign(:posts, list_posts(socket, event.uuid))
+     |> assign(:current_tab, :messages)}
   end
 
   @impl true
@@ -50,6 +60,11 @@ defmodule ClaperWeb.StatLive.Index do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, gettext("Report"))
+  end
+
+  @impl true
+  def handle_event("change_tab", %{"tab" => tab}, socket) do
+    {:noreply, assign(socket, :current_tab, String.to_existing_atom(tab))}
   end
 
   defp calculate_engagement_rate(event, unique_attendees) do
@@ -63,10 +78,14 @@ defmodule ClaperWeb.StatLive.Index do
     |> :erlang.binary_to_integer()
   end
 
+  defp average_messages(_event, 0), do: 0
+
   defp average_messages(event, unique_attendees) do
     distinct_poster_count = Claper.Stats.distinct_poster_count(event.id)
     distinct_poster_count / unique_attendees
   end
+
+  defp average_polls(_event, 0), do: 0
 
   defp average_polls(event, unique_attendees) do
     poll_ids = Claper.Polls.list_polls(event.presentation_file.id) |> Enum.map(& &1.id)
@@ -75,12 +94,16 @@ defmodule ClaperWeb.StatLive.Index do
     distinct_votes / (Enum.count(poll_ids) * unique_attendees)
   end
 
+  defp average_quizzes(_event, 0), do: 0
+
   defp average_quizzes(event, unique_attendees) do
     quiz_ids = Claper.Quizzes.list_quizzes(event.presentation_file.id) |> Enum.map(& &1.id)
     distinct_votes = Claper.Stats.get_distinct_quiz_responses(quiz_ids)
 
     distinct_votes / (Enum.count(quiz_ids) * unique_attendees)
   end
+
+  defp average_forms(_event, 0), do: 0
 
   defp average_forms(event, unique_attendees) do
     form_ids = Claper.Forms.list_forms(event.presentation_file.id) |> Enum.map(& &1.id)

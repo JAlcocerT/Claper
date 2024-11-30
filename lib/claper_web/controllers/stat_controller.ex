@@ -1,120 +1,173 @@
 defmodule ClaperWeb.StatController do
+  @moduledoc """
+  Controller responsible for exporting various statistics and data in CSV format.
+  Handles form submissions, messages, and poll results exports.
+  """
   use ClaperWeb, :controller
 
-  alias Claper.Forms
+  alias Claper.{Forms, Events, Polls, Presentations, Quizzes}
 
+  @doc """
+  Exports form submissions as a CSV file.
+  """
   def export_form(conn, %{"form_id" => form_id}) do
     form = Forms.get_form!(form_id, [:form_submits])
     headers = form.fields |> Enum.map(& &1.name)
-    csv_data = headers |> csv_content(form.form_submits |> Enum.map(& &1.response))
 
-    conn
-    |> put_resp_content_type("text/csv")
-    |> put_resp_header(
-      "content-disposition",
-      "attachment; filename=\"form-#{sanitize(form.title)}.csv\""
-    )
-    |> put_root_layout(false)
-    |> send_resp(200, csv_data)
+    data =
+      form.form_submits
+      |> Enum.map(fn submit ->
+        form.fields
+        |> Enum.map(fn field ->
+          Map.get(submit.response, field.name, "")
+        end)
+      end)
+
+    export_as_csv(conn, headers, data, "form-#{sanitize(form.title)}")
   end
 
+  @doc """
+  Exports all messages from an event as a CSV file.
+  Requires user to be either an event leader or the event owner.
+  """
   def export_all_messages(%{assigns: %{current_user: current_user}} = conn, %{
         "event_id" => event_id
       }) do
-    event = Claper.Events.get_event!(event_id, posts: [:user])
+    event = Events.get_event!(event_id, posts: [:user])
 
-    if Claper.Events.leaded_by?(current_user.email, event) || event.user_id == current_user.id do
-      headers = [
-        "Attendee identifier",
-        "User email",
-        "Name",
-        "Message",
-        "Pinned",
-        "Slide #",
-        "Sent at (UTC)"
-      ]
+    case authorize_event_access(current_user, event) do
+      :ok ->
+        headers = [
+          "Attendee identifier",
+          "User email",
+          "Name",
+          "Message",
+          "Pinned",
+          "Slide #",
+          "Sent at (UTC)"
+        ]
 
-      content =
-        event.posts
-        |> Enum.map(
-          &[
-            if(&1.attendee_identifier, do: &1.attendee_identifier |> Base.encode16(), else: "N/A"),
-            if(&1.user, do: &1.user.email, else: "N/A"),
-            &1.name || "N/A",
-            &1.body,
-            &1.pinned,
-            &1.position + 1,
-            &1.inserted_at
-          ]
-        )
+        content = format_messages_for_export(event.posts)
 
-      csv_data = ([headers] ++ content) |> CSV.encode() |> Enum.to_list() |> to_string
+        export_as_csv(conn, headers, content, "messages-#{sanitize(event.name)}")
 
-      conn
-      |> put_resp_content_type("text/csv")
-      |> put_resp_header(
-        "content-disposition",
-        "attachment; filename=\"messages-#{sanitize(event.name)}.csv\""
-      )
-      |> put_root_layout(false)
-      |> send_resp(200, csv_data)
-    else
-      conn
-      |> send_resp(403, "Forbidden")
+      :unauthorized ->
+        send_resp(conn, 403, "Forbidden")
     end
   end
 
-  def export_poll(%{assigns: %{current_user: current_user}} = conn, %{
-        "poll_id" => poll_id
-      }) do
-    poll = Claper.Polls.get_poll!(poll_id)
-
-    presentation_file =
-      Claper.Presentations.get_presentation_file!(poll.presentation_file_id, [:event])
-
-    event = presentation_file.event
-
-    if Claper.Events.leaded_by?(current_user.email, event) || event.user_id == current_user.id do
-      headers =
-        [
-          "Name",
-          "Multiple choice",
-          "Slide #"
-        ] ++
-          Enum.map(poll.poll_opts, & &1.content)
+  @doc """
+  Exports poll results as a CSV file.
+  Requires user to be either an event leader or the event owner.
+  """
+  def export_poll(%{assigns: %{current_user: current_user}} = conn, %{"poll_id" => poll_id}) do
+    with poll <- Polls.get_poll!(poll_id),
+         presentation_file <-
+           Presentations.get_presentation_file!(poll.presentation_file_id, [:event]),
+         event <- presentation_file.event,
+         :ok <- authorize_event_access(current_user, event) do
+      headers = ["Name", "Multiple choice", "Slide #"] ++ Enum.map(poll.poll_opts, & &1.content)
 
       content =
         [poll.title, poll.multiple, poll.position + 1] ++
           Enum.map(poll.poll_opts, & &1.vote_count)
 
-      csv_data = ([headers] ++ [content]) |> CSV.encode() |> Enum.to_list() |> to_string
-
-      conn
-      |> put_resp_content_type("text/csv")
-      |> put_resp_header(
-        "content-disposition",
-        "attachment; filename=\"poll-#{sanitize(poll.title)}.csv\""
-      )
-      |> put_root_layout(false)
-      |> send_resp(200, csv_data)
+      export_as_csv(conn, headers, [content], "poll-#{sanitize(poll.title)}")
     else
-      conn
-      |> send_resp(403, "Forbidden")
+      :unauthorized -> send_resp(conn, 403, "Forbidden")
     end
   end
 
-  defp csv_content(headers, records) do
-    data =
-      records
-      |> Enum.map(&(&1 |> Map.values()))
+  @doc """
+  Exports quiz results as a CSV file.
+  Requires user to be either an event leader or the event owner.
+  """
+  def export_quiz(%{assigns: %{current_user: current_user}} = conn, %{"quiz_id" => quiz_id}) do
+    with quiz <-
+           Quizzes.get_quiz!(quiz_id, [
+             :quiz_questions,
+             quiz_questions: :quiz_question_opts,
+             presentation_file: :event
+           ]),
+         event <- quiz.presentation_file.event,
+         :ok <- authorize_event_access(current_user, event) do
+      # Create headers for the CSV
+      headers = ["Question", "Correct Answers", "Total Responses", "Response Distribution (%)"]
 
-    ([headers] ++ data)
-    |> CSV.encode()
-    |> Enum.to_list()
-    |> to_string()
+      # Format data rows
+      data =
+        quiz.quiz_questions
+        |> Enum.map(fn question ->
+          [
+            question.content,
+            # Correct answers
+            question.quiz_question_opts
+            |> Enum.filter(& &1.is_correct)
+            |> Enum.map_join(", ", & &1.content),
+            # Total responses
+            question.quiz_question_opts
+            |> Enum.map(& &1.response_count)
+            |> Enum.sum()
+            |> to_string(),
+            # Response distribution
+            question.quiz_question_opts
+            |> Enum.map_join(", ", fn opt ->
+              "#{opt.content}: #{opt.percentage}%"
+            end)
+          ]
+        end)
+
+      export_as_csv(conn, headers, data, "quiz-#{sanitize(quiz.title)}")
+    else
+      :unauthorized -> send_resp(conn, 403, "Forbidden")
+    end
   end
 
-  defp sanitize(string) do
-    string |> String.downcase() |> String.replace(" ", "_") |> String.trim()
+  # Private functions
+
+  defp authorize_event_access(user, event) do
+    if Events.leaded_by?(user.email, event) || event.user_id == user.id do
+      :ok
+    else
+      :unauthorized
+    end
   end
+
+  defp format_messages_for_export(posts) do
+    posts
+    |> Enum.map(fn post ->
+      [
+        format_attendee_identifier(post.attendee_identifier),
+        format_user_email(post.user),
+        post.name || "N/A",
+        post.body,
+        post.pinned,
+        post.position + 1,
+        post.inserted_at
+      ]
+    end)
+  end
+
+  defp format_attendee_identifier(nil), do: "N/A"
+  defp format_attendee_identifier(identifier), do: Base.encode16(identifier)
+
+  defp format_user_email(nil), do: "N/A"
+  defp format_user_email(user), do: user.email
+
+  defp export_as_csv(conn, headers, data, filename) do
+    csv_data =
+      ([headers] ++ data)
+      |> CSV.encode()
+      |> Enum.to_list()
+      |> to_string()
+
+    conn
+    |> put_resp_content_type("text/csv")
+    |> put_resp_header("content-disposition", "attachment; filename=\"#{filename}.csv\"")
+    |> put_root_layout(false)
+    |> send_resp(200, csv_data)
+  end
+
+  defp sanitize(string),
+    do: string |> String.replace(~r/[^\w\s-]/, "") |> String.replace(~r/\s+/, "-")
 end
