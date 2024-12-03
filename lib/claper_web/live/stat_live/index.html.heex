@@ -306,31 +306,33 @@
                   </p>
                 <% end %>
 
-                <%= for fs <- form.form_submits do %>
-                  <div id={"#{fs.id}-form"}>
-                    <div class="px-4 pb-2 pt-3 rounded-b-lg rounded-tr-lg bg-white relative shadow-md text-black break-all mt-4">
-                      <div class="flex space-x-3 items-center">
-                        <%= if fs.attendee_identifier do %>
-                          <img
-                            class="h-8 w-8"
-                            src={"https://api.dicebear.com/7.x/personas/svg?seed=#{fs.attendee_identifier}.svg"}
-                          />
-                        <% else %>
-                          <img
-                            class="h-8 w-8"
-                            src={"https://api.dicebear.com/7.x/personas/svg?seed=#{fs.user_id}.svg"}
-                          />
-                        <% end %>
-
-                        <div>
-                          <%= for res <- fs.response do %>
-                            <p><strong><%= elem(res, 0) %>:</strong> <%= elem(res, 1) %></p>
+                <div class="mb-10">
+                  <%= for fs <- form.form_submits do %>
+                    <div id={"#{fs.id}-form"}>
+                      <div class="px-4 pb-2 pt-3 rounded-b-lg rounded-tr-lg bg-white relative shadow-md text-black break-all mt-4">
+                        <div class="flex space-x-3 items-center">
+                          <%= if fs.attendee_identifier do %>
+                            <img
+                              class="h-8 w-8"
+                              src={"https://api.dicebear.com/7.x/personas/svg?seed=#{fs.attendee_identifier}.svg"}
+                            />
+                          <% else %>
+                            <img
+                              class="h-8 w-8"
+                              src={"https://api.dicebear.com/7.x/personas/svg?seed=#{fs.user_id}.svg"}
+                            />
                           <% end %>
+
+                          <div>
+                            <%= for res <- fs.response do %>
+                              <p><strong><%= elem(res, 0) %>:</strong> <%= elem(res, 1) %></p>
+                            <% end %>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                <% end %>
+                  <% end %>
+                </div>
               <% end %>
             <% else %>
               <p class="italic text-gray-500"><%= gettext("No form has been created") %></p>
@@ -343,8 +345,13 @@
                 <span class="text-xl font-semibold text-gray-900 mb-4">
                   <%= embed.title %>
                 </span>
-                <div class="text-black break-all mt-4">
-                  <%= raw(embed.content) %>
+                <div class="text-black break-all mt-4 mb-10">
+                  <.live_component
+                    id={"embed-component-#{embed.id}"}
+                    module={ClaperWeb.EventLive.EmbedIframeComponent}
+                    provider={embed.provider}
+                    content={embed.content}
+                  />
                 </div>
               <% end %>
             <% else %>
@@ -395,7 +402,7 @@
             <%= if length(@event.presentation_file.quizzes) > 0 do %>
               <div>
                 <%= for quiz <- @event.presentation_file.quizzes do %>
-                  <div class="bg-gray-900 w-full p-4 text-black shadow-lg rounded-md">
+                  <div class="bg-gray-900 w-full p-4 text-black shadow-lg rounded-md mb-10">
                     <div class="mb-4">
                       <div class="w-full flex items-center justify-between">
                         <p class="text-white text-xl font-semibold mb-2"><%= quiz.title %></p>
