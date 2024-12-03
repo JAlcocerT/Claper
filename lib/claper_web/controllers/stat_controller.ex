@@ -123,6 +123,33 @@ defmodule ClaperWeb.StatController do
     end
   end
 
+  @doc """
+  Exports quiz as QTI format.
+  Requires user to be either an event leader or the event owner.
+  """
+  def export_quiz_qti(%{assigns: %{current_user: current_user}} = conn, %{"quiz_id" => quiz_id}) do
+    with quiz <-
+           Quizzes.get_quiz!(quiz_id, [
+             :quiz_questions,
+             quiz_questions: :quiz_question_opts,
+             presentation_file: :event
+           ]),
+         event <- quiz.presentation_file.event,
+         :ok <- authorize_event_access(current_user, event) do
+      qti_content = generate_qti_content(quiz)
+
+      conn
+      |> put_resp_content_type("application/xml")
+      |> put_resp_header(
+        "content-disposition",
+        ~s(attachment; filename="#{sanitize(quiz.title)}_qti.xml")
+      )
+      |> send_resp(200, qti_content)
+    else
+      :unauthorized -> send_resp(conn, 403, "Forbidden")
+    end
+  end
+
   # Private functions
 
   defp authorize_event_access(user, event) do
@@ -166,6 +193,67 @@ defmodule ClaperWeb.StatController do
     |> put_resp_header("content-disposition", "attachment; filename=\"#{filename}.csv\"")
     |> put_root_layout(false)
     |> send_resp(200, csv_data)
+  end
+
+  defp generate_qti_content(quiz) do
+    """
+    <?xml version="1.0" encoding="UTF-8"?>
+    <questestinterop xmlns="http://www.imsglobal.org/xsd/ims_qtiasiv1p2">
+      <assessment title="#{quiz.title}">
+        <section>
+          #{Enum.map_join(quiz.quiz_questions, "\n", &generate_qti_item/1)}
+        </section>
+      </assessment>
+    </questestinterop>
+    """
+  end
+
+  defp generate_qti_item(question) do
+    """
+      <item>
+        <presentation>
+          <material>
+            <mattext>#{question.content}</mattext>
+          </material>
+          <response_lid ident="RESPONSE" rcardinality="Multiple">
+            <render_choice>
+              #{Enum.map_join(question.quiz_question_opts, "\n", &generate_qti_option/1)}
+            </render_choice>
+          </response_lid>
+        </presentation>
+        <resprocessing>
+          <outcomes>
+            <decvar vartype="Integer" defaultval="0"/>
+          </outcomes>
+          #{Enum.map_join(question.quiz_question_opts, "\n", &generate_qti_condition/1)}
+        </resprocessing>
+      </item>
+    """
+  end
+
+  defp generate_qti_option(option) do
+    """
+              <response_label ident="#{option.id}">
+                <material>
+                  <mattext>#{option.content}</mattext>
+                </material>
+              </response_label>
+    """
+  end
+
+  defp generate_qti_condition(option) do
+    if option.is_correct do
+      """
+          <respcondition>
+            <conditionvar>
+              <varequal respident="RESPONSE">#{option.id}</varequal>
+            </conditionvar>
+            <setvar action="Set">1</setvar>
+          </respcondition>
+      """
+    else
+      ""
+    end
   end
 
   defp sanitize(string),
