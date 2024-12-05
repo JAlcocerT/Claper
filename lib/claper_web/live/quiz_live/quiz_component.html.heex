@@ -203,7 +203,7 @@
 
       <%= if @live_action == :edit do %>
         <%= link to: ~p"/export/quizzes/#{@quiz.id}/qti", class: "text-xs text-primary-500 font-medium flex items-center gap-1", method: :post, target: "_blank" do %>
-          <%= gettext("Export to QTI (XML)  ") %>
+          <%= gettext("Export to QTI (XML)") %>
         <% end %>
       <% end %>
     </div>
