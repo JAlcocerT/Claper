@@ -182,10 +182,10 @@ defmodule ClaperWeb.EventLive.Index do
   end
 
   defp list_events(socket) do
-    Events.list_events(socket.assigns.current_user.id, [:presentation_file])
+    Events.list_events(socket.assigns.current_user.id, [:presentation_file, :lti_resource])
   end
 
   defp list_managed_events(socket) do
-    Events.list_managed_events_by(socket.assigns.current_user.email, [:presentation_file])
+    Events.list_managed_events_by(socket.assigns.current_user.email, [:presentation_file, :lti_resource])
   end
 end

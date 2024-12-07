@@ -191,8 +191,6 @@ defmodule Claper.Quizzes do
     {:error, %{changeset | action: :update}}
   end
 
-  defp update_lti_line_item(_quiz, _changeset), do: {:ok, nil}
-
   defp update_lti_line_item(quiz, %Ecto.Changeset{changes: %{title: _title}} = changeset) do
     with presentation_file <-
            Claper.Presentations.get_presentation_file!(quiz.presentation_file_id,
@@ -212,6 +210,8 @@ defmodule Claper.Quizzes do
       )
     end
   end
+
+  defp update_lti_line_item(_quiz, _changeset), do: {:ok, nil}
 
   @doc """
   Deletes a quiz.

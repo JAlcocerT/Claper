@@ -1,5 +1,4 @@
 defmodule ClaperWeb.EventLive.Show do
-  alias ClaperWeb.Lti
   alias Claper.Interactions
   use ClaperWeb, :live_view
 

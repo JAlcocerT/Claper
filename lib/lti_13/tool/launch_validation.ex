@@ -90,7 +90,7 @@ defmodule Lti13.Tool.LaunchValidation do
            "https://purl.imsglobal.org/spec/lti-ags/claim/endpoint" => %{
              "lineitems" => line_items_url
            }
-         } = obj,
+         },
          lti_user,
          registration,
          is_instructor
@@ -112,9 +112,6 @@ defmodule Lti13.Tool.LaunchValidation do
       {:error, _} -> {:error, %{reason: :invalid_resource, msg: "Failed to create resource"}}
     end
   end
-
-  defp handle_missing_resource(_, _, _, false),
-    do: {:error, %{reason: :invalid_resource, msg: "User is not authorized to create resource"}}
 
   defp handle_existing_resource(resource, lti_user, true) do
     maybe_create_activity_leader(resource, lti_user)
