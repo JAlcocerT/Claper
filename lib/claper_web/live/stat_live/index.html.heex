@@ -433,7 +433,7 @@
                     </div>
 
                     <div class="flex flex-col space-y-3 overflow-y-auto max-h-[500px]">
-                      <%= for {question, idx} <- Enum.with_index(quiz.quiz_questions) do %>
+                      <%= for {question, _idx} <- Enum.with_index(quiz.quiz_questions) do %>
                         <div class="border-t border-gray-700 pt-4 mt-4 first:border-t-0 first:pt-0 first:mt-0">
                           <p class="text-white text-lg font-medium mb-3">
                             <%= question.content %>

@@ -41,4 +41,10 @@ defmodule Claper.Quizzes.Quiz do
       drop_param: :quiz_questions_delete
     )
   end
+
+  def update_line_item_changeset(quiz, attrs) do
+    quiz
+    |> cast(attrs, [:lti_line_item_url])
+    |> validate_required([:lti_line_item_url])
+  end
 end
