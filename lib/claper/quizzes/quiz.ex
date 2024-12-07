@@ -7,8 +7,10 @@ defmodule Claper.Quizzes.Quiz do
     field :position, :integer, default: 0
     field :enabled, :boolean, default: false
     field :show_results, :boolean, default: false
+    field :lti_line_item_url, :string
 
     belongs_to :presentation_file, Claper.Presentations.PresentationFile
+    belongs_to :lti_resource, Lti13.Resources.Resource
 
     has_many :quiz_questions, Claper.Quizzes.QuizQuestion,
       preload_order: [asc: :id],
@@ -22,7 +24,15 @@ defmodule Claper.Quizzes.Quiz do
   @doc false
   def changeset(quiz, attrs) do
     quiz
-    |> cast(attrs, [:title, :position, :presentation_file_id, :enabled, :show_results])
+    |> cast(attrs, [
+      :title,
+      :position,
+      :presentation_file_id,
+      :enabled,
+      :show_results,
+      :lti_resource_id,
+      :lti_line_item_url
+    ])
     |> validate_required([:title, :position, :presentation_file_id])
     |> cast_assoc(:quiz_questions,
       required: true,

@@ -81,33 +81,31 @@ defmodule Lti13.Tool.LaunchValidation do
     end
   end
 
-  @spec validate_resource(
-          map(),
-          Lti13.Users.User.t(),
-          Lti13.Registrations.Registration.t(),
-          boolean()
-        ) :: {:ok, Lti13.Resources.Resource.t()} | {:error, map()}
   defp validate_resource(
          %{
            "https://purl.imsglobal.org/spec/lti/claim/custom" => %{
              "resource_title" => title,
              "resource_id" => resource_id
+           },
+           "https://purl.imsglobal.org/spec/lti-ags/claim/endpoint" => %{
+             "lineitems" => line_items_url
            }
-         },
+         } = obj,
          lti_user,
          registration,
          is_instructor
        ) do
     case Lti13.Resources.get_resource_by_id_and_registration(resource_id, registration.id) do
-      nil -> handle_missing_resource(title, resource_id, lti_user, is_instructor)
+      nil -> handle_missing_resource(title, resource_id, lti_user, line_items_url, is_instructor)
       resource -> handle_existing_resource(resource, lti_user, is_instructor)
     end
   end
 
-  defp handle_missing_resource(title, resource_id, lti_user, true) do
+  defp handle_missing_resource(title, resource_id, lti_user, line_items_url, true) do
     case Lti13.Resources.create_resource_with_event(%{
            title: title,
            resource_id: resource_id,
+           line_items_url: line_items_url,
            lti_user: lti_user
          }) do
       {:ok, resource} -> {:ok, resource}

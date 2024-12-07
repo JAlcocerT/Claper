@@ -18,7 +18,7 @@ defmodule ClaperWeb.QuizLive.QuizComponent do
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     quiz = Quizzes.get_quiz!(id, [:quiz_questions, quiz_questions: :quiz_question_opts])
-    {:ok, _} = Quizzes.delete_quiz(socket.assigns.event_uuid, quiz)
+    {:ok, _} = Quizzes.delete_quiz(socket.assigns.event.uuid, quiz)
 
     {:noreply, socket |> push_navigate(to: socket.assigns.return_to)}
   end
@@ -86,7 +86,7 @@ defmodule ClaperWeb.QuizLive.QuizComponent do
 
   defp save_quiz(socket, :edit, quiz_params) do
     case Quizzes.update_quiz(
-           socket.assigns.event_uuid,
+           socket.assigns.event.uuid,
            socket.assigns.quiz,
            quiz_params
          ) do
@@ -101,9 +101,12 @@ defmodule ClaperWeb.QuizLive.QuizComponent do
   end
 
   defp save_quiz(socket, :new, quiz_params) do
+    lti_resource = socket.assigns.event.lti_resource
+
     case Quizzes.create_quiz(
            quiz_params
            |> Map.put("presentation_file_id", socket.assigns.presentation_file.id)
+           |> Map.put("lti_resource_id", lti_resource.id)
            |> Map.put("position", socket.assigns.position)
            |> Map.put("enabled", false)
          ) do
@@ -123,7 +126,7 @@ defmodule ClaperWeb.QuizLive.QuizComponent do
 
     Phoenix.PubSub.broadcast(
       Claper.PubSub,
-      "event:#{socket.assigns.event_uuid}",
+      "event:#{socket.assigns.event.uuid}",
       {:current_quiz, quiz}
     )
 

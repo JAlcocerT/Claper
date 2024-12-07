@@ -17,6 +17,7 @@ defmodule ClaperWeb.EventLive.Manage do
     event =
       Claper.Events.get_event_with_code(code, [
         :user,
+        :lti_resource,
         presentation_file: [:polls, :presentation_state]
       ])
 

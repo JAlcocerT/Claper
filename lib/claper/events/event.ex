@@ -27,10 +27,11 @@ defmodule Claper.Events.Event do
     field :expired_at, :naive_datetime
 
     has_many :posts, Claper.Posts.Post
-
     has_many :leaders, Claper.Events.ActivityLeader, on_replace: :delete
 
     has_one :presentation_file, Claper.Presentations.PresentationFile
+    has_one :lti_resource, Lti13.Resources.Resource
+
     belongs_to :user, Claper.Accounts.User
 
     timestamps()

@@ -1,11 +1,14 @@
 defmodule Claper.Quizzes do
   import Ecto.Query, warn: false
+  alias Ecto.Changeset
   alias Claper.Repo
 
   alias Claper.Quizzes.Quiz
   alias Claper.Quizzes.QuizQuestion
   alias Claper.Quizzes.QuizQuestionOpt
   alias Claper.Quizzes.QuizResponse
+
+  alias Lti13.Tool.Services.AGS
 
   @doc """
   Returns the list of quizzes for a given presentation file.
@@ -107,7 +110,39 @@ defmodule Claper.Quizzes do
   def create_quiz(attrs \\ %{}) do
     %Quiz{}
     |> Quiz.changeset(attrs)
-    |> Repo.insert()
+    |> case do
+      %{valid?: false, changes: _changes} = changeset ->
+        {:error, %{changeset | action: :insert}}
+
+      changeset ->
+        case create_lti_line_item(changeset) do
+          {:ok, line_item} ->
+            changeset
+            |> Ecto.Changeset.change(lti_line_item_url: line_item.id)
+            |> Repo.insert()
+
+          {:error, _} ->
+            changeset
+            |> Repo.insert()
+        end
+    end
+  end
+
+  defp create_lti_line_item(%Ecto.Changeset{} = changeset) do
+    with presentation_file <-
+           Claper.Presentations.get_presentation_file!(changeset.changes.presentation_file_id,
+             event: [lti_resource: [:registration]]
+           ),
+         %Lti13.Resources.Resource{} = lti_resource <- presentation_file.event.lti_resource,
+         {:ok, token} <- Lti13.Tool.Services.AccessToken.fetch_access_token(lti_resource) do
+      AGS.create_line_item(
+        lti_resource.line_items_url,
+        lti_resource.resource_id,
+        100,
+        changeset.changes.title,
+        token
+      )
+    end
   end
 
   @doc """
@@ -130,13 +165,51 @@ defmodule Claper.Quizzes do
   def update_quiz(event_uuid, %Quiz{} = quiz, attrs) do
     quiz
     |> Quiz.changeset(attrs)
-    |> Repo.update()
     |> case do
-      {:ok, quiz} ->
-        broadcast({:ok, quiz, event_uuid}, :quiz_updated)
-
-      {:error, changeset} ->
+      %{valid?: false, changes: _changes} = changeset ->
         {:error, %{changeset | action: :update}}
+
+      changeset ->
+        case update_lti_line_item(quiz, changeset) do
+          {:ok, _line_item} ->
+            changeset
+            |> Repo.update()
+            |> quiz_updated(event_uuid)
+
+          {:error, _} ->
+            changeset = changeset |> Changeset.add_error(:lti_messsages, "Error")
+            {:error, %{changeset | action: :update}}
+        end
+    end
+  end
+
+  defp quiz_updated({:ok, quiz}, event_uuid) when is_struct(quiz) do
+    broadcast({:ok, quiz, event_uuid}, :quiz_updated)
+  end
+
+  defp quiz_updated({:error, changeset}, _event_uuid) do
+    {:error, %{changeset | action: :update}}
+  end
+
+  defp update_lti_line_item(_quiz, _changeset), do: {:ok, nil}
+
+  defp update_lti_line_item(quiz, %Ecto.Changeset{changes: %{title: _title}} = changeset) do
+    with presentation_file <-
+           Claper.Presentations.get_presentation_file!(quiz.presentation_file_id,
+             event: [lti_resource: [:registration]]
+           ),
+         %Lti13.Resources.Resource{} = lti_resource <- presentation_file.event.lti_resource,
+         {:ok, token} <- Lti13.Tool.Services.AccessToken.fetch_access_token(lti_resource) do
+      AGS.update_line_item(
+        %Lti13.Tool.Services.AGS.LineItem{
+          id: quiz.lti_line_item_url,
+          label: changeset.changes.title,
+          scoreMaximum: 100,
+          resourceId: lti_resource.resource_id
+        },
+        %{label: changeset.changes.title},
+        token
+      )
     end
   end
 
@@ -258,6 +331,7 @@ defmodule Claper.Quizzes do
          |> Repo.transaction() do
       {:ok, _} ->
         quiz = get_quiz!(quiz_id, [:quiz_questions, quiz_questions: :quiz_question_opts])
+        Lti13.QuizScoreReporter.report_quiz_score(quiz, user_id)
         {:ok, quiz}
     end
   end

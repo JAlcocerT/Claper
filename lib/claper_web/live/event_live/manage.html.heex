@@ -372,7 +372,7 @@
             <.live_component
               module={ClaperWeb.QuizLive.QuizComponent}
               id="quiz-create"
-              event_uuid={@event.uuid}
+              event={@event}
               presentation_file={@event.presentation_file}
               quiz={@quiz}
               live_action={@create_action}
@@ -488,6 +488,13 @@
               </svg>
               <span id="attendees-count" phx-update="ignore" phx-hook="UpdateAttendees">
                 <%= @attendees_nb %>
+              </span>
+              <span>
+                <%= link(gettext("Join"),
+                  to: ~p"/e/#{@event.code}",
+                  class: "text-xs text-primary-600 font-semibold text-sm ",
+                  target: "_blank"
+                ) %>
               </span>
             </div>
           </div>
