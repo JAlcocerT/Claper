@@ -31,12 +31,14 @@ defmodule Claper.QuizzesFixtures do
               }
             ]
           }
-        ]
+        ],
+        lti_resource_id: nil,
+        lti_line_item_url: nil
       })
 
     case Claper.Quizzes.create_quiz(attrs) do
       {:ok, quiz} -> quiz
-      {:error, changeset} -> 
+      {:error, changeset} ->
         raise "Failed to create quiz: #{inspect(changeset.errors)}"
     end
   end

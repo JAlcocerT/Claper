@@ -111,7 +111,7 @@ defmodule Claper.Quizzes do
     |> case do
       {:ok, quiz} ->
         Claper.Workers.QuizLti.create(quiz.id) |> Oban.insert()
-
+        {:ok, quiz}
       error ->
         error
     end
@@ -166,8 +166,12 @@ defmodule Claper.Quizzes do
 
   """
   def delete_quiz(event_uuid, %Quiz{} = quiz) do
-    {:ok, quiz} = Repo.delete(quiz)
-    broadcast({:ok, quiz, event_uuid}, :quiz_deleted)
+    case Repo.delete(quiz) do
+      {:ok, quiz} ->
+        broadcast({:ok, quiz, event_uuid}, :quiz_deleted)
+        {:ok, quiz}
+      error -> error
+    end
   end
 
   @doc """
@@ -266,7 +270,7 @@ defmodule Claper.Quizzes do
          |> Repo.transaction() do
       {:ok, _} ->
         quiz = get_quiz!(quiz_id, [:quiz_questions, quiz_questions: :quiz_question_opts])
-        Lti13.QuizScoreReporter.report_quiz_score(quiz, user_id) |> Oban.insert()
+        Lti13.QuizScoreReporter.report_quiz_score(quiz, user_id)
         {:ok, quiz}
     end
   end

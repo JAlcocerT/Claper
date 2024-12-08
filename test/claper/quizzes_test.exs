@@ -25,9 +25,22 @@ defmodule Claper.QuizzesTest do
 
     test "get_quiz!/1 returns the quiz with given id" do
       quiz = quiz_fixture()
+      fetched_quiz = Quizzes.get_quiz!(quiz.id, quiz_questions: :quiz_question_opts)
 
-      assert Quizzes.get_quiz!(quiz.id, quiz_questions: :quiz_question_opts) ==
-               quiz
+      # Compare all fields except the virtual percentage field in quiz_question_opts
+      assert Map.drop(fetched_quiz, [:quiz_questions]) == Map.drop(quiz, [:quiz_questions])
+      assert length(fetched_quiz.quiz_questions) == length(quiz.quiz_questions)
+
+      Enum.zip(fetched_quiz.quiz_questions, quiz.quiz_questions)
+      |> Enum.each(fn {fetched_question, original_question} ->
+        assert Map.drop(fetched_question, [:quiz_question_opts]) == Map.drop(original_question, [:quiz_question_opts])
+        assert length(fetched_question.quiz_question_opts) == length(original_question.quiz_question_opts)
+
+        Enum.zip(fetched_question.quiz_question_opts, original_question.quiz_question_opts)
+        |> Enum.each(fn {fetched_opt, original_opt} ->
+          assert Map.drop(fetched_opt, [:percentage]) == Map.drop(original_opt, [:percentage])
+        end)
+      end)
     end
 
     test "create_quiz/1 with valid data creates a quiz" do
