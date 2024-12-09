@@ -53,8 +53,17 @@ defmodule Claper.Workers.QuizLti do
     end
   end
 
-  def perform(%Oban.Job{args: %{"action" => "post_score", "quiz_id" => quiz_id, "user_id" => user_id, "score" => score, "timestamp" => timestamp}}) do
-    with quiz <- Claper.Quizzes.get_quiz!(quiz_id, [:lti_resource]), user <- Claper.Accounts.get_user!(user_id) |> Claper.Repo.preload(:lti_user) do
+  def perform(%Oban.Job{
+        args: %{
+          "action" => "post_score",
+          "quiz_id" => quiz_id,
+          "user_id" => user_id,
+          "score" => score,
+          "timestamp" => timestamp
+        }
+      }) do
+    with quiz <- Claper.Quizzes.get_quiz!(quiz_id, [:lti_resource]),
+         user <- Claper.Accounts.get_user!(user_id) |> Claper.Repo.preload(:lti_user) do
       case AccessToken.fetch_access_token(quiz.lti_resource) do
         {:ok, access_token} ->
           line_item = %LineItem{

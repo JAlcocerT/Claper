@@ -21,7 +21,6 @@ defmodule ClaperWeb.UserRegistrationController do
   end
 
   def create(conn, %{"user" => user_params}) do
-
     case Accounts.register_user(user_params(user_params)) do
       {:ok, user} ->
         if Application.get_env(:claper, :email_confirmation) do

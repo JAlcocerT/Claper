@@ -33,8 +33,11 @@ defmodule Claper.QuizzesTest do
 
       Enum.zip(fetched_quiz.quiz_questions, quiz.quiz_questions)
       |> Enum.each(fn {fetched_question, original_question} ->
-        assert Map.drop(fetched_question, [:quiz_question_opts]) == Map.drop(original_question, [:quiz_question_opts])
-        assert length(fetched_question.quiz_question_opts) == length(original_question.quiz_question_opts)
+        assert Map.drop(fetched_question, [:quiz_question_opts]) ==
+                 Map.drop(original_question, [:quiz_question_opts])
+
+        assert length(fetched_question.quiz_question_opts) ==
+                 length(original_question.quiz_question_opts)
 
         Enum.zip(fetched_question.quiz_question_opts, original_question.quiz_question_opts)
         |> Enum.each(fn {fetched_opt, original_opt} ->

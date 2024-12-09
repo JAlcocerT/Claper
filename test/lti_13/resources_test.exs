@@ -109,7 +109,6 @@ defmodule Lti13.ResourcesTest do
         lti_user: lti_user
       }
 
-
       assert {:error, %{reason: :invalid_resource, msg: "Failed to create resource"}} =
                Resources.create_resource_with_event(attrs)
     end

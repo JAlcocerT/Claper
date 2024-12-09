@@ -9,7 +9,8 @@ defmodule Claper.QuizzesFixtures do
   def quiz_fixture(attrs \\ %{}) do
     presentation_file = attrs[:presentation_file] || presentation_file_fixture()
 
-    attrs = attrs
+    attrs =
+      attrs
       |> Enum.into(%{
         title: "some quiz title",
         position: 42,
@@ -37,7 +38,9 @@ defmodule Claper.QuizzesFixtures do
       })
 
     case Claper.Quizzes.create_quiz(attrs) do
-      {:ok, quiz} -> quiz
+      {:ok, quiz} ->
+        quiz
+
       {:error, changeset} ->
         raise "Failed to create quiz: #{inspect(changeset.errors)}"
     end

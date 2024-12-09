@@ -139,7 +139,12 @@ defmodule Claper.AccountsTest do
     end
 
     test "sends token through notification", %{user: user} do
-      {:ok, token} = Accounts.deliver_update_email_instructions(user, "current@example.com", &"/users/settings/confirm_email/#{&1}")
+      {:ok, token} =
+        Accounts.deliver_update_email_instructions(
+          user,
+          "current@example.com",
+          &"/users/settings/confirm_email/#{&1}"
+        )
 
       {:ok, token} = Base.url_decode64(token, padding: false)
       assert user_token = Repo.get_by(UserToken, token: :crypto.hash(:sha256, token))
@@ -154,7 +159,12 @@ defmodule Claper.AccountsTest do
       user = user_fixture()
       email = unique_user_email()
 
-      {:ok, token} = Accounts.deliver_update_email_instructions(%{user | email: email}, user.email, &"/users/settings/confirm_email/#{&1}")
+      {:ok, token} =
+        Accounts.deliver_update_email_instructions(
+          %{user | email: email},
+          user.email,
+          &"/users/settings/confirm_email/#{&1}"
+        )
 
       %{user: user, token: token, email: email}
     end
@@ -257,7 +267,8 @@ defmodule Claper.AccountsTest do
     end
 
     test "sends token through notification", %{user: user} do
-      {:ok, token} = Accounts.deliver_user_confirmation_instructions(user, &"/users/confirm/#{&1}")
+      {:ok, token} =
+        Accounts.deliver_user_confirmation_instructions(user, &"/users/confirm/#{&1}")
 
       {:ok, token} = Base.url_decode64(token, padding: false)
       assert user_token = Repo.get_by(UserToken, token: :crypto.hash(:sha256, token))
@@ -271,7 +282,8 @@ defmodule Claper.AccountsTest do
     setup do
       user = user_fixture()
 
-      {:ok, token} = Accounts.deliver_user_confirmation_instructions(user, &"/users/confirm/#{&1}")
+      {:ok, token} =
+        Accounts.deliver_user_confirmation_instructions(user, &"/users/confirm/#{&1}")
 
       %{user: user, token: token}
     end

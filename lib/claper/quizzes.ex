@@ -112,6 +112,7 @@ defmodule Claper.Quizzes do
       {:ok, quiz} ->
         Claper.Workers.QuizLti.create(quiz.id) |> Oban.insert()
         {:ok, quiz}
+
       error ->
         error
     end
@@ -170,7 +171,9 @@ defmodule Claper.Quizzes do
       {:ok, quiz} ->
         broadcast({:ok, quiz, event_uuid}, :quiz_deleted)
         {:ok, quiz}
-      error -> error
+
+      error ->
+        error
     end
   end
 

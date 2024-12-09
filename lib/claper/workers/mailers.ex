@@ -5,8 +5,10 @@ defmodule Claper.Workers.Mailers do
   alias ClaperWeb.Notifiers.UserNotifier
 
   @impl Oban.Worker
-  def perform(%Oban.Job{args: %{"type" => type, "user_id" => user_id, "url" => url}}) when type in ["confirm", "reset", "update_email"] do
+  def perform(%Oban.Job{args: %{"type" => type, "user_id" => user_id, "url" => url}})
+      when type in ["confirm", "reset", "update_email"] do
     user = Claper.Accounts.get_user!(user_id)
+
     email =
       case type do
         "confirm" -> UserNotifier.confirm(user, url)

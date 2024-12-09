@@ -25,11 +25,19 @@ defmodule ClaperWeb.EventLive.Index do
       Phoenix.PubSub.subscribe(Claper.PubSub, "events:#{socket.assigns.current_user.id}")
     end
 
+    expired_events_count = Events.count_expired_events(socket.assigns.current_user.id)
+    invited_events_count = Events.count_managed_events_by(socket.assigns.current_user.email)
+
     socket =
       socket
-      |> stream(:events, list_events(socket))
-      |> assign(:managed_events, list_managed_events(socket))
+      |> assign(:active_tab, "not_expired")
       |> assign(:quick_event_changeset, changeset)
+      |> assign(:has_expired_events, expired_events_count > 0)
+      |> assign(:has_invited_events, invited_events_count > 0)
+      |> assign(:page, 1)
+      |> assign(:total_pages, 1)
+      |> assign(:total_entries, 0)
+      |> load_events()
 
     {:ok, socket}
   end
@@ -142,6 +150,21 @@ defmodule ClaperWeb.EventLive.Index do
     {:noreply, assign(socket, :live_action, :quick_create)}
   end
 
+  @impl true
+  def handle_event("change-tab", %{"tab" => tab}, socket) do
+    updated_socket = assign(socket, :active_tab, tab)
+    {:noreply, updated_socket |> load_events(%{reset: true})}
+  end
+
+  @impl true
+  def handle_event("load-more", _, socket) do
+    if socket.assigns.page < socket.assigns.total_pages do
+      {:noreply, socket |> assign(:page, socket.assigns.page + 1) |> load_events()}
+    else
+      {:noreply, socket}
+    end
+  end
+
   defp apply_action(socket, :edit, %{"id" => id}) do
     event =
       Events.get_user_event!(socket.assigns.current_user.id, id, [:presentation_file, :leaders])
@@ -181,11 +204,33 @@ defmodule ClaperWeb.EventLive.Index do
     |> assign(:event, nil)
   end
 
-  defp list_events(socket) do
-    Events.list_events(socket.assigns.current_user.id, [:presentation_file, :lti_resource])
-  end
+  defp load_events(socket, params \\ %{}) do
+    params = %{"page" => socket.assigns.page, "page_size" => 5}
 
-  defp list_managed_events(socket) do
-    Events.list_managed_events_by(socket.assigns.current_user.email, [:presentation_file, :lti_resource])
+    {events, total_entries, total_pages} =
+      case socket.assigns.active_tab do
+        "not_expired" ->
+          Events.paginate_not_expired_events(socket.assigns.current_user.id, params, [
+            :presentation_file,
+            :lti_resource
+          ])
+
+        "expired" ->
+          Events.paginate_expired_events(socket.assigns.current_user.id, params, [
+            :presentation_file,
+            :lti_resource
+          ])
+
+        "invited" ->
+          Events.paginate_managed_events_by(socket.assigns.current_user.email, params, [
+            :presentation_file,
+            :lti_resource
+          ])
+      end
+
+    socket
+    |> assign(:total_entries, total_entries)
+    |> assign(:total_pages, total_pages)
+    |> stream(:events, events, reset: Map.get(params, "reset", false))
   end
 end

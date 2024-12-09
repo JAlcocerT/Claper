@@ -53,7 +53,8 @@ defmodule ClaperWeb.UserConfirmationControllerTest do
 
   describe "POST /users/confirm/:token" do
     test "confirms the given token once", %{conn: conn, user: user} do
-      {:ok, token} = Accounts.deliver_user_confirmation_instructions(user, &"/users/confirm/#{&1}")
+      {:ok, token} =
+        Accounts.deliver_user_confirmation_instructions(user, &"/users/confirm/#{&1}")
 
       conn = get(conn, ~p"/users/confirm/#{token}")
       assert redirected_to(conn) == ~p"/users/log_in"
