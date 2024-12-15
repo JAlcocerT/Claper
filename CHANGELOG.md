@@ -4,15 +4,16 @@
 
 - Add quizzes interaction with LTI AGS integration and QTI export
 - Add join link in manager view to join attendee room more easily
-- New report view with better metrics and tab-view for all interactions
 - Export all interactions to CSV in the reports view
 
 ### Fixes and improvements
 
+- New report view with better metrics and tab-view for all interactions
 - Improve design improvements for interaction boxes in attendee room
 - Fix engagement rate stats
 - Add button to trigger product tour instead of automatically starting it
 - Improve design and UX for interactions and presentation settings in the manager view
+- Add pagination for events on the dashboard
 
 ## v2.2.0
 

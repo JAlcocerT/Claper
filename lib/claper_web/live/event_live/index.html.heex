@@ -196,16 +196,17 @@
     </nav>
 
     <div class="mt-2 relative">
-      <ul role="event-list" phx-update="stream" id="events">
+      <ul role="event-list" id="events">
         <% current_time = NaiveDateTime.utc_now() %>
-        <.live_component
-          :for={{id, event} <- @streams.events}
-          module={ClaperWeb.EventLive.EventCardComponent}
-          id={id}
-          event={event}
-          current_time={current_time}
-          is_leader={@active_tab == "invited"}
-        />
+        <%= for event <- @events do %>
+          <.live_component
+            module={ClaperWeb.EventLive.EventCardComponent}
+            id={"event-#{event.id}"}
+            event={event}
+            current_time={current_time}
+            is_leader={@active_tab == "invited"}
+          />
+        <% end %>
       </ul>
       <%= if @page < @total_pages do %>
         <div class="flex justify-center mt-8">
@@ -217,7 +218,7 @@
           </button>
         </div>
       <% end %>
-      <%= if Enum.count(@streams.events) == 0 do %>
+      <%= if Enum.count(@events) == 0 do %>
         <div class="w-full text-2xl text-black opacity-25 text-center">
           <img src="/images/icons/arrow.svg" class="h-20 float-right mr-16 -mt-5" />
           <p class="pt-12 clear-both"><%= gettext("Create your first event") %></p>

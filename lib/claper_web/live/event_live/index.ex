@@ -37,6 +37,8 @@ defmodule ClaperWeb.EventLive.Index do
       |> assign(:page, 1)
       |> assign(:total_pages, 1)
       |> assign(:total_entries, 0)
+      |> assign(:events, [])
+      |> assign(:temporary_assigns, [events: []])
       |> load_events()
 
     {:ok, socket}
@@ -51,7 +53,7 @@ defmodule ClaperWeb.EventLive.Index do
   def handle_info({:presentation_file_process_done, presentation}, socket) do
     event = Claper.Events.get_event!(presentation.event.uuid, [:presentation_file])
 
-    {:noreply, socket |> stream_insert(:events, event) |> put_flash(:info, nil)}
+    {:noreply, socket |> assign(:events, [event | socket.assigns.events]) |> put_flash(:info, nil)}
   end
 
   @impl true
@@ -152,8 +154,14 @@ defmodule ClaperWeb.EventLive.Index do
 
   @impl true
   def handle_event("change-tab", %{"tab" => tab}, socket) do
-    updated_socket = assign(socket, :active_tab, tab)
-    {:noreply, updated_socket |> load_events(%{reset: true})}
+    socket =
+      socket
+      |> assign(:active_tab, tab)
+      |> assign(:page, 1)
+      |> assign(:events, [])
+      |> load_events()
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -204,7 +212,7 @@ defmodule ClaperWeb.EventLive.Index do
     |> assign(:event, nil)
   end
 
-  defp load_events(socket, params \\ %{}) do
+  defp load_events(socket) do
     params = %{"page" => socket.assigns.page, "page_size" => 5}
 
     {events, total_entries, total_pages} =
@@ -231,6 +239,6 @@ defmodule ClaperWeb.EventLive.Index do
     socket
     |> assign(:total_entries, total_entries)
     |> assign(:total_pages, total_pages)
-    |> stream(:events, events, reset: Map.get(params, "reset", false))
+    |> assign(:events, if(socket.assigns.page == 1, do: events, else: socket.assigns.events ++ events))
   end
 end
