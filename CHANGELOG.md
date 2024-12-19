@@ -5,6 +5,7 @@
 - Add quizzes interaction with LTI AGS integration and QTI export
 - Add join link in manager view to join attendee room more easily
 - Export all interactions to CSV in the reports view
+- Add Oban for asynchronous jobs (mailer and LMS API calls)
 
 ### Fixes and improvements
 
