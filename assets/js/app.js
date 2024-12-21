@@ -122,7 +122,7 @@ Hooks.Split = {
     const columnSlitValue =
       localStorage.getItem(`column-split-${id}`) || "1fr 10px 1fr";
     const rowSlitValue =
-      localStorage.getItem(`row-split-${id}`) || "1fr 10px 1fr";
+      localStorage.getItem(`row-split-${id}`) || "0.5fr 10px 1fr";
 
     if (type === "column") {
       this.columnSplit = Split({
