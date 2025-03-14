@@ -40,6 +40,31 @@ services:
     networks:
       - claper-net
 
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`claper.jalcocertech.com`)" #make sure to prepare the DNS record first!
+      - "traefik.http.routers.app.tls.certresolver=myresolver"
+      - "traefik.http.routers.app.entrypoints=websecure"
+      - "traefik.http.services.app.loadbalancer.server.port=4000"
+  traefik:
+    image: traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=example@jalcocertech.com" #change this too!
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - claper-net
+
 volumes:
   claper-db:
     driver: local
