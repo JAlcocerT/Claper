@@ -1,4 +1,10 @@
-Yes, this `docker-compose.yml` file is now correctly structured and should work as intended. Let's break down each section and explain how it functions:
+[Blog on Claper, **here** →](https://jalcocert.github.io/JAlcocerT/creating-presentations-with-ai/#selfhosting-cool-ppt-software)
+
+---
+
+This `docker-compose.yml` file is now correctly structured and should work as intended.
+
+Let's break down each section and explain how it functions:
 
 **1. Services:**
 
